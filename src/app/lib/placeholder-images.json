@@ -1,0 +1,22 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero-auditorium",
+      "description": "Grand Government Auditorium with seating and stage",
+      "imageUrl": "https://picsum.photos/seed/gov-1/1200/600",
+      "imageHint": "auditorium stage"
+    },
+    {
+      "id": "event-symposium",
+      "description": "Professional symposium in a government hall",
+      "imageUrl": "https://picsum.photos/seed/gov-2/600/400",
+      "imageHint": "conference hall"
+    },
+    {
+      "id": "govt-building",
+      "description": "Stately government administrative building",
+      "imageUrl": "https://picsum.photos/seed/gov-3/800/600",
+      "imageHint": "government building"
+    }
+  ]
+}
