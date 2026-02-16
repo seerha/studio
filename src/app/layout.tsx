@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css';
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: 'GovBook Portal | Official Government Auditorium Booking',
@@ -20,6 +21,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased selection:bg-accent selection:text-primary">
         {children}
+        <Toaster />
       </body>
     </html>
   );

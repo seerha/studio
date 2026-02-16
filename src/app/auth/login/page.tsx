@@ -6,19 +6,38 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Building2, Lock, Mail, ArrowRight } from "lucide-react";
+import { Building2, Lock, Mail, ArrowRight, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const router = useRouter();
+  const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simple simulation for now
+
+    // Simulation logic
     setTimeout(() => {
-      window.location.href = "/dashboard/requester";
-    }, 1000);
+      const isAdmin = email.includes("admin");
+      const session = {
+        role: isAdmin ? "admin" : "requester",
+        name: isAdmin ? "Admin Authority" : "Dept. of Culture",
+        email: email
+      };
+      localStorage.setItem("govbook_session", JSON.stringify(session));
+      
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${session.name}. Redirecting to dashboard...`,
+      });
+
+      router.push(isAdmin ? "/dashboard/admin" : "/dashboard/requester");
+    }, 1500);
   };
 
   return (
@@ -49,8 +68,11 @@ export default function LoginPage() {
                     placeholder="name@gov.in" 
                     className="pl-10"
                     required 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
+                <p className="text-[10px] text-muted-foreground italic">Tip: Use "admin@gov.in" to test admin view.</p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
