@@ -1,3 +1,22 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-auditorium",
+      "description": "Grand Government Auditorium with seating and stage",
+      "imageUrl": "https://images.unsplash.com/photo-1597084214230-473c7bf05a31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxhdWRpdG9yaXVtJTIwc3RhZ2V8ZW58MHx8fHwxNzcxMjM0OTI3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "auditorium stage"
+    },
+    {
+      "id": "event-symposium",
+      "description": "Professional symposium in a government hall",
+      "imageUrl": "https://images.unsplash.com/photo-1588865198054-c83788106132?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjb25mZXJlbmNlJTIwaGFsbHxlbnwwfHx8fDE3NzEyMzQ5Mjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "conference hall"
+    },
+    {
+      "id": "govt-building",
+      "description": "Stately government administrative building",
+      "imageUrl": "https://images.unsplash.com/photo-1667849921481-9e13c239ee3d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxnb3Zlcm5tZW50JTIwYnVpbGRpbmd8ZW58MHx8fHwxNzcxMTcwMjUzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "government building"
+    }
+  ]
 }

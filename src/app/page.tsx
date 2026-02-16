@@ -27,14 +27,16 @@ export default function Home() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative h-[600px] w-full flex items-center justify-center overflow-hidden">
-          <Image
-            src={heroImage?.imageUrl || ""}
-            alt={heroImage?.description || "Auditorium"}
-            fill
-            priority
-            className="object-cover brightness-50"
-            data-ai-hint="auditorium stage"
-          />
+          {heroImage?.imageUrl && (
+            <Image
+              src={heroImage.imageUrl}
+              alt={heroImage.description || "Auditorium"}
+              fill
+              priority
+              className="object-cover brightness-50"
+              data-ai-hint="auditorium stage"
+            />
+          )}
           <div className="container relative z-10 mx-auto px-4 text-center">
             <h1 className="mb-6 text-4xl font-extrabold tracking-tight text-white md:text-6xl font-headline">
               Official Government Auditorium <br />
@@ -135,14 +137,16 @@ export default function Home() {
               </div>
               <div className="lg:w-1/2 relative">
                 <div className="rounded-2xl overflow-hidden shadow-2xl">
-                  <Image
-                    src={symposiumImage?.imageUrl || ""}
-                    alt="Symposium"
-                    width={600}
-                    height={400}
-                    className="object-cover"
-                    data-ai-hint="conference hall"
-                  />
+                  {symposiumImage?.imageUrl && (
+                    <Image
+                      src={symposiumImage.imageUrl}
+                      alt={symposiumImage.description || "Symposium"}
+                      width={600}
+                      height={400}
+                      className="object-cover"
+                      data-ai-hint="conference hall"
+                    />
+                  )}
                 </div>
                 <div className="absolute -bottom-6 -left-6 bg-accent p-6 rounded-lg shadow-xl hidden sm:block">
                   <p className="text-primary font-bold text-2xl">100% Digital</p>
