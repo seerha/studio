@@ -16,7 +16,9 @@ import {
   Eye, 
   CheckCircle, 
   XCircle,
-  BarChart4
+  BarChart4,
+  Mail,
+  Filter
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +29,8 @@ export default function AdminDashboard() {
     { id: "BR-4092", user: "Dept of Science", category: "Cat A", event: "National Science Symposium", date: "Oct 14, 2026", vip: "Yes", status: "pending" },
     { id: "BR-4105", user: "Green NGO", category: "Cat B", event: "Eco-Summit 2025", date: "Nov 12, 2025", vip: "No", status: "pending" },
     { id: "BR-4112", user: "Tech Solutions Ltd", category: "Cat C", event: "Product Launch", date: "Dec 05, 2025", vip: "No", status: "pending" },
+    { id: "BR-4201", user: "Social Welfare Dept", category: "Cat A", event: "Annual Awards Ceremony", date: "Jan 15, 2026", vip: "Yes", status: "pending" },
+    { id: "BR-4205", user: "Medical Association", category: "Cat B", event: "Healthcare Webinar", date: "Feb 10, 2026", vip: "No", status: "pending" },
   ]);
 
   const handleAction = (id: string, action: 'approved' | 'rejected') => {
@@ -44,23 +48,27 @@ export default function AdminDashboard() {
       <main className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold font-headline">Admin Control Center</h1>
-            <p className="text-muted-foreground">Authorized: Approving Authority Level-II</p>
+            <h1 className="text-3xl font-bold font-headline text-primary">Admin Control Center</h1>
+            <p className="text-muted-foreground">Authorized: Approving Authority Level-II (Admin)</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="border-primary text-primary" onClick={() => toast({ title: "Report Generation Started" })}>Generate Reports</Button>
-            <Button variant="destructive" className="bg-destructive" onClick={() => toast({ title: "Override Mode Active", variant: "destructive" })}>Emergency Override</Button>
+            <Button variant="outline" className="border-primary text-primary" onClick={() => toast({ title: "Report Generation Started" })}>
+              <BarChart4 className="mr-2 h-4 w-4" /> Reports
+            </Button>
+            <Button variant="destructive" className="bg-destructive" onClick={() => toast({ title: "Override Mode Active", variant: "destructive" })}>
+              <AlertTriangle className="mr-2 h-4 w-4" /> Emergency Override
+            </Button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           {[
             { label: "New Users", value: "24", icon: <Users className="text-blue-500" /> },
-            { label: "Pending Bookings", value: requests.length.toString(), icon: <Calendar className="text-accent" /> },
+            { label: "Pending", value: requests.length.toString(), icon: <Calendar className="text-accent" /> },
             { label: "Approved Today", value: "15", icon: <FileCheck className="text-green-500" /> },
-            { label: "Revoked/Rejected", value: "03", icon: <AlertTriangle className="text-destructive" /> },
+            { label: "Revoked", value: "03", icon: <AlertTriangle className="text-destructive" /> },
           ].map((stat, i) => (
-            <Card key={i} className="border-none shadow-sm">
+            <Card key={i} className="border-none shadow-sm bg-white">
               <CardContent className="p-6 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold uppercase text-muted-foreground">{stat.label}</p>
@@ -75,56 +83,87 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="pending-bookings" className="space-y-6">
-          <TabsList className="bg-white p-1 border">
-            <TabsTrigger value="pending-bookings" className="data-[state=active]:bg-primary data-[state=active]:text-white">Pending Bookings</TabsTrigger>
-            <TabsTrigger value="user-verifications" className="data-[state=active]:bg-primary data-[state=active]:text-white">User Verifications</TabsTrigger>
-            <TabsTrigger value="master-calendar" className="data-[state=active]:bg-primary data-[state=active]:text-white">Master Control</TabsTrigger>
+          <TabsList className="bg-white p-1 border inline-flex">
+            <TabsTrigger value="pending-bookings" className="data-[state=active]:bg-primary data-[state=active]:text-white px-6">
+              Booking Queue ({requests.length})
+            </TabsTrigger>
+            <TabsTrigger value="user-verifications" className="data-[state=active]:bg-primary data-[state=active]:text-white px-6">
+              User Verification
+            </TabsTrigger>
+            <TabsTrigger value="master-calendar" className="data-[state=active]:bg-primary data-[state=active]:text-white px-6">
+              Master Control
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending-bookings">
             <Card className="border-none shadow-md">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                   <CardTitle className="text-xl font-headline">Booking Approval Queue</CardTitle>
-                  <CardDescription>Review event proposals and generate invoices.</CardDescription>
+                  <CardDescription>Review and process incoming auditorium allotment requests.</CardDescription>
                 </div>
-                <div className="relative w-64">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Search requests..." className="pl-9 h-9" />
+                <div className="flex gap-2 w-full md:w-auto">
+                  <div className="relative flex-1 md:w-64">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="Search requests..." className="pl-9 h-9" />
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <Filter className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {requests.length > 0 ? (
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Ref ID</TableHead>
-                        <TableHead>Organization</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Event</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>VIP</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
+                      <TableRow className="bg-secondary/20">
+                        <TableHead className="font-bold">Ref ID</TableHead>
+                        <TableHead className="font-bold">Organization</TableHead>
+                        <TableHead className="font-bold">Category</TableHead>
+                        <TableHead className="font-bold">Event Name</TableHead>
+                        <TableHead className="font-bold">Proposed Date</TableHead>
+                        <TableHead className="font-bold">VIP Status</TableHead>
+                        <TableHead className="text-right font-bold">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {requests.map((req) => (
-                        <TableRow key={req.id}>
-                          <TableCell className="font-bold">{req.id}</TableCell>
+                        <TableRow key={req.id} className="hover:bg-secondary/10">
+                          <TableCell className="font-bold text-primary">{req.id}</TableCell>
                           <TableCell>{req.user}</TableCell>
                           <TableCell>
                             <Badge variant="outline">{req.category}</Badge>
                           </TableCell>
-                          <TableCell>{req.event}</TableCell>
+                          <TableCell className="font-medium">{req.event}</TableCell>
                           <TableCell>{req.date}</TableCell>
                           <TableCell>
-                            {req.vip === "Yes" ? <Badge className="bg-accent text-primary">VIP</Badge> : "No"}
+                            {req.vip === "Yes" ? (
+                              <Badge className="bg-accent text-primary border-none">VIP GUEST</Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">None</span>
+                            )}
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="icon" title="View Proposal"><Eye className="h-4 w-4" /></Button>
-                              <Button variant="outline" size="sm" onClick={() => handleAction(req.id, 'approved')} className="text-green-600 border-green-600 hover:bg-green-50">Approve</Button>
-                              <Button variant="outline" size="sm" onClick={() => handleAction(req.id, 'rejected')} className="text-destructive border-destructive hover:bg-red-50">Reject</Button>
+                              <Button variant="ghost" size="icon" className="hover:text-primary">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleAction(req.id, 'approved')} 
+                                className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700 font-bold"
+                              >
+                                <CheckCircle className="mr-1 h-3 w-3" /> Approve
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleAction(req.id, 'rejected')} 
+                                className="text-destructive border-red-200 hover:bg-red-50 hover:text-red-700 font-bold"
+                              >
+                                <XCircle className="mr-1 h-3 w-3" /> Reject
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -132,8 +171,12 @@ export default function AdminDashboard() {
                     </TableBody>
                   </Table>
                 ) : (
-                  <div className="p-12 text-center text-muted-foreground">
-                    All booking requests have been processed.
+                  <div className="p-16 text-center">
+                    <div className="bg-secondary/50 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="h-8 w-8 text-green-500" />
+                    </div>
+                    <h3 className="text-lg font-bold text-primary">Queue Cleared</h3>
+                    <p className="text-muted-foreground">All booking requests have been processed.</p>
                   </div>
                 )}
               </CardContent>
@@ -142,10 +185,11 @@ export default function AdminDashboard() {
 
           <TabsContent value="user-verifications">
             <Card className="border-none shadow-md">
-              <CardContent className="p-12 text-center">
-                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-bold mb-2">No User Verifications Pending</h3>
-                <p className="text-muted-foreground max-w-sm mx-auto">Verifying Officers have cleared the current queue. Check back later for new registrations.</p>
+              <CardContent className="p-16 text-center">
+                <Users className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+                <h3 className="text-xl font-bold mb-2">Verification Queue Empty</h3>
+                <p className="text-muted-foreground max-w-sm mx-auto">There are no new organizations awaiting categorization or ID verification at this time.</p>
+                <Button variant="outline" className="mt-6">View Archive</Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -154,31 +198,43 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="md:col-span-2 border-none shadow-md">
                 <CardHeader>
-                  <CardTitle>Calendar Override Control</CardTitle>
-                  <CardDescription>Instantly block dates for state emergencies or maintenance.</CardDescription>
+                  <CardTitle>Calendar Lock Control</CardTitle>
+                  <CardDescription>Instantly block dates for state emergencies, maintenance, or high-security VIP movements.</CardDescription>
                 </CardHeader>
-                <CardContent className="h-[400px] flex items-center justify-center border m-6 rounded-lg bg-secondary/10">
-                   <p className="text-muted-foreground italic">Interactive Master Calendar Interface Loading...</p>
+                <CardContent className="h-[400px] flex flex-col items-center justify-center border m-6 rounded-lg bg-secondary/10 border-dashed">
+                   <Calendar className="h-12 w-12 text-primary/20 mb-4" />
+                   <p className="text-muted-foreground font-medium">Interactive Master Calendar Loading...</p>
+                   <Button variant="link" className="text-primary mt-2">Open Expanded View</Button>
                 </CardContent>
               </Card>
               <div className="space-y-6">
-                <Card className="border-none shadow-md bg-destructive text-white">
+                <Card className="border-none shadow-md bg-primary text-white">
                   <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2"><AlertTriangle className="h-5 w-5" /> Force Cancellation</CardTitle>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-accent" /> 
+                      Force Revocation
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-xs">Select a booked date to revoke approval. 100% automatic refund will be triggered.</p>
-                    <Input className="bg-white/10 border-white/20 text-white placeholder:text-white/50" placeholder="Enter Ref ID" />
-                    <Button variant="secondary" className="w-full" onClick={() => toast({ title: "Cancellation Processed", variant: "destructive" })}>Revoke Booking</Button>
+                    <p className="text-xs opacity-80 leading-relaxed">Cancel any confirmed booking for emergency administrative reasons. Automatic refund will be initiated.</p>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-white/60">Booking Reference ID</Label>
+                      <Input className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:bg-white/20" placeholder="e.g. BR-4092" />
+                    </div>
+                    <Button variant="secondary" className="w-full bg-accent text-primary hover:bg-accent/90 border-none font-bold" onClick={() => toast({ title: "Revocation Processed", description: "Reference has been cancelled and refund queued.", variant: "destructive" })}>
+                      Revoke Booking
+                    </Button>
                   </CardContent>
                 </Card>
-                <Card className="border-none shadow-md">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2"><CheckCircle className="h-5 w-5 text-green-500" /> Direct Block</CardTitle>
+                <Card className="border-none shadow-md border-l-4 border-accent">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Administrative Block</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-xs text-muted-foreground">Block dates for internal government functions instantly.</p>
-                    <Button className="w-full bg-primary" onClick={() => toast({ title: "Block Mode Enabled" })}>Open Direct Block Form</Button>
+                    <p className="text-xs text-muted-foreground">Quickly reserve dates for Government Internal Meetings or State Functions.</p>
+                    <Button className="w-full bg-primary font-bold">
+                      New Admin Block
+                    </Button>
                   </CardContent>
                 </Card>
               </div>

@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Building2, Lock, Mail, ArrowRight, AlertCircle } from "lucide-react";
+import { Building2, Lock, Mail, ArrowRight, UserCheck, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -17,17 +18,19 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleManualLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    const role = email.includes("admin") ? "admin" : "requester";
+    simulateLogin(role);
+  };
 
-    // Simulation logic
+  const simulateLogin = (role: 'admin' | 'requester') => {
+    setIsLoading(true);
     setTimeout(() => {
-      const isAdmin = email.includes("admin");
       const session = {
-        role: isAdmin ? "admin" : "requester",
-        name: isAdmin ? "Admin Authority" : "Dept. of Culture",
-        email: email
+        role: role,
+        name: role === 'admin' ? "Admin Authority" : "Dept. of Culture",
+        email: role === 'admin' ? "admin@gov.in" : "culture.dept@gov.in"
       };
       localStorage.setItem("govbook_session", JSON.stringify(session));
       
@@ -36,8 +39,8 @@ export default function LoginPage() {
         description: `Welcome back, ${session.name}. Redirecting to dashboard...`,
       });
 
-      router.push(isAdmin ? "/dashboard/admin" : "/dashboard/requester");
-    }, 1500);
+      router.push(role === 'admin' ? "/dashboard/admin" : "/dashboard/requester");
+    }, 800);
   };
 
   return (
@@ -51,13 +54,45 @@ export default function LoginPage() {
                 <Building2 className="h-8 w-8 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-headline">Secure Login</CardTitle>
+            <CardTitle className="text-2xl font-headline text-white">Secure Login</CardTitle>
             <CardDescription className="text-primary-foreground/80">
               Access the official government booking portal
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <CardContent className="p-8 space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <Button 
+                variant="outline" 
+                className="flex flex-col h-auto py-4 border-primary/20 hover:border-primary hover:bg-primary/5"
+                onClick={() => simulateLogin('requester')}
+                disabled={isLoading}
+              >
+                <UserCheck className="h-6 w-6 mb-2 text-primary" />
+                <span className="font-bold">Login as User</span>
+                <span className="text-[10px] text-muted-foreground uppercase">Requester</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex flex-col h-auto py-4 border-primary/20 hover:border-primary hover:bg-primary/5"
+                onClick={() => simulateLogin('admin')}
+                disabled={isLoading}
+              >
+                <ShieldCheck className="h-6 w-6 mb-2 text-accent" />
+                <span className="font-bold">Login as Admin</span>
+                <span className="text-[10px] text-muted-foreground uppercase">Authority</span>
+              </Button>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-muted-foreground">Or sign in with email</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleManualLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Official Email ID</Label>
                 <div className="relative">
@@ -72,15 +107,9 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                <p className="text-[10px] text-muted-foreground italic">Tip: Use "admin@gov.in" to test admin view.</p>
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link href="#" className="text-xs text-primary hover:underline font-medium">
-                    Forgot password?
-                  </Link>
-                </div>
+                <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input 
@@ -93,17 +122,17 @@ export default function LoginPage() {
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-primary hover:bg-primary/90 py-6 text-lg"
+                className="w-full bg-primary hover:bg-primary/90"
                 disabled={isLoading}
               >
-                {isLoading ? "Authenticating..." : "Login to Portal"}
-                {!isLoading && <ArrowRight className="ml-2 h-5 w-5" />}
+                {isLoading ? "Authenticating..." : "Sign In"}
+                {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="bg-secondary/50 p-6 flex flex-col items-center gap-2 border-t">
+          <CardFooter className="bg-secondary/50 p-6 flex flex-col items-center gap-2 border-t rounded-b-lg">
             <p className="text-sm text-muted-foreground">Don't have an account yet?</p>
-            <Button variant="outline" className="w-full border-primary text-primary" asChild>
+            <Button variant="link" className="text-primary p-0 h-auto font-bold" asChild>
               <Link href="/auth/register">Register Your Organization</Link>
             </Button>
           </CardFooter>
