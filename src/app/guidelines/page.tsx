@@ -53,7 +53,7 @@ export default function GuidelinesPage() {
             </Card>
           </section>
 
-          {/* New Section: Operational Protocols */}
+          {/* Operational Protocols */}
           <section>
             <div className="flex items-center gap-3 mb-6">
               <div className="bg-primary text-white p-2 rounded-lg">
@@ -121,7 +121,7 @@ export default function GuidelinesPage() {
               <AccordionItem value="item-1">
                 <AccordionTrigger className="font-bold">Allotment Priority</AccordionTrigger>
                 <AccordionContent className="text-muted-foreground leading-relaxed">
-                  Priority is strictly followed: State Government Functions > Central Government Functions > Registered NGOs (Social/Educational) > Private Commercial Entities. The Administrator reserves the right to override any booking for State Emergency use.
+                  Priority is strictly followed: State Government Functions &gt; Central Government Functions &gt; Registered NGOs (Social/Educational) &gt; Private Commercial Entities. The Administrator reserves the right to override any booking for State Emergency use.
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-2">
