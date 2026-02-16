@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Users, 
-  Calendar, 
+  Calendar as CalendarIcon, 
   FileCheck, 
   AlertTriangle, 
   Search, 
@@ -17,14 +17,35 @@ import {
   CheckCircle, 
   XCircle,
   BarChart4,
-  Mail,
-  Filter
+  Filter,
+  ShieldAlert,
+  CalendarDays,
+  Trash2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function AdminDashboard() {
   const { toast } = useToast();
+  
+  // Simulated State for Bookings
   const [requests, setRequests] = useState([
     { id: "BR-4092", user: "Dept of Science", category: "Cat A", event: "National Science Symposium", date: "Oct 14, 2026", vip: "Yes", status: "pending" },
     { id: "BR-4105", user: "Green NGO", category: "Cat B", event: "Eco-Summit 2025", date: "Nov 12, 2025", vip: "No", status: "pending" },
@@ -33,12 +54,61 @@ export default function AdminDashboard() {
     { id: "BR-4205", user: "Medical Association", category: "Cat B", event: "Healthcare Webinar", date: "Feb 10, 2026", vip: "No", status: "pending" },
   ]);
 
+  // Simulated State for Blocked Dates (Emergency Overrides)
+  const [blockedDates, setBlockedDates] = useState([
+    { id: "BLOCK-001", date: new Date(2025, 4, 20), reason: "State G20 Preparation", type: "Emergency" },
+    { id: "BLOCK-002", date: new Date(2025, 5, 10), reason: "VIP Visit (Hon. PM)", type: "Security" },
+  ]);
+
+  // Form State for New Override
+  const [overrideDate, setOverrideDate] = useState<Date>();
+  const [overrideReason, setOverrideReason] = useState("");
+  const [overrideType, setOverrideType] = useState("Emergency");
+
   const handleAction = (id: string, action: 'approved' | 'rejected') => {
     setRequests(prev => prev.filter(r => r.id !== id));
     toast({
       title: `Request ${action === 'approved' ? 'Approved' : 'Rejected'}`,
       description: `Booking reference ${id} has been processed successfully.`,
       variant: action === 'approved' ? "default" : "destructive",
+    });
+  };
+
+  const handleEmergencyOverride = () => {
+    if (!overrideDate || !overrideReason) {
+      toast({
+        title: "Incomplete Details",
+        description: "Please select a date and provide a valid reason for the override.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newBlock = {
+      id: `BLOCK-${Math.floor(Math.random() * 1000)}`,
+      date: overrideDate,
+      reason: overrideReason,
+      type: overrideType,
+    };
+
+    setBlockedDates(prev => [newBlock, ...prev]);
+    
+    toast({
+      title: "State Override Activated",
+      description: `The auditorium has been blocked for ${format(overrideDate, "PPP")}. Any existing bookings on this date have been notified for cancellation.`,
+      variant: "destructive",
+    });
+
+    // Reset Form
+    setOverrideDate(undefined);
+    setOverrideReason("");
+  };
+
+  const removeBlock = (id: string) => {
+    setBlockedDates(prev => prev.filter(b => b.id !== id));
+    toast({
+      title: "Block Lifted",
+      description: "The administrative block has been removed and the slot is now open for public booking."
     });
   };
 
@@ -55,18 +125,97 @@ export default function AdminDashboard() {
             <Button variant="outline" className="border-primary text-primary" onClick={() => toast({ title: "Report Generation Started" })}>
               <BarChart4 className="mr-2 h-4 w-4" /> Reports
             </Button>
-            <Button variant="destructive" className="bg-destructive" onClick={() => toast({ title: "Override Mode Active", variant: "destructive" })}>
-              <AlertTriangle className="mr-2 h-4 w-4" /> Emergency Override
-            </Button>
+            
+            {/* Emergency Override Dialog */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="bg-destructive shadow-lg hover:bg-destructive/90">
+                  <AlertTriangle className="mr-2 h-4 w-4" /> Emergency State Override
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="max-w-md">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                    <ShieldAlert className="h-6 w-6" />
+                    Critical State Override
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-foreground/80">
+                    This action will instantly block the auditorium for the selected date. This is an <strong>irreversible override</strong> that automatically revokes any existing bookings for that slot.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                
+                <div className="py-4 space-y-4">
+                  <div className="space-y-2">
+                    <Label>Select Target Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal border-primary/20",
+                            !overrideDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {overrideDate ? format(overrideDate, "PPP") : <span>Pick a date to block</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={overrideDate}
+                          onSelect={setOverrideDate}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Reason for Override</Label>
+                    <Select value={overrideType} onValueChange={setOverrideType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Emergency">National Emergency</SelectItem>
+                        <SelectItem value="State">State Government Function</SelectItem>
+                        <SelectItem value="Security">VIP / Security Movement</SelectItem>
+                        <SelectItem value="Maintenance">Urgent Maintenance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Specific Details / Remarks</Label>
+                    <Input 
+                      placeholder="e.g. G20 Summit Preparation" 
+                      value={overrideReason}
+                      onChange={(e) => setOverrideReason(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleEmergencyOverride}
+                    className="bg-destructive hover:bg-destructive/90 text-white"
+                  >
+                    Confirm & Activate Override
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           {[
             { label: "New Users", value: "24", icon: <Users className="text-blue-500" /> },
-            { label: "Pending", value: requests.length.toString(), icon: <Calendar className="text-accent" /> },
+            { label: "Pending", value: requests.length.toString(), icon: <CalendarIcon className="text-accent" /> },
             { label: "Approved Today", value: "15", icon: <FileCheck className="text-green-500" /> },
-            { label: "Revoked", value: "03", icon: <AlertTriangle className="text-destructive" /> },
+            { label: "Admin Blocks", value: blockedDates.length.toString(), icon: <ShieldAlert className="text-destructive" /> },
           ].map((stat, i) => (
             <Card key={i} className="border-none shadow-sm bg-white">
               <CardContent className="p-6 flex items-center justify-between">
@@ -99,7 +248,7 @@ export default function AdminDashboard() {
             <Card className="border-none shadow-md">
               <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                  <CardTitle className="text-xl font-headline">Booking Approval Queue</CardTitle>
+                  <CardTitle className="text-xl font-headline text-primary">Booking Approval Queue</CardTitle>
                   <CardDescription>Review and process incoming auditorium allotment requests.</CardDescription>
                 </div>
                 <div className="flex gap-2 w-full md:w-auto">
@@ -138,7 +287,7 @@ export default function AdminDashboard() {
                           <TableCell>{req.date}</TableCell>
                           <TableCell>
                             {req.vip === "Yes" ? (
-                              <Badge className="bg-accent text-primary border-none">VIP GUEST</Badge>
+                              <Badge className="bg-accent text-primary border-none font-bold">VIP GUEST</Badge>
                             ) : (
                               <span className="text-muted-foreground text-sm">None</span>
                             )}
@@ -187,9 +336,9 @@ export default function AdminDashboard() {
             <Card className="border-none shadow-md">
               <CardContent className="p-16 text-center">
                 <Users className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2">Verification Queue Empty</h3>
+                <h3 className="text-xl font-bold mb-2 text-primary">Verification Queue Empty</h3>
                 <p className="text-muted-foreground max-w-sm mx-auto">There are no new organizations awaiting categorization or ID verification at this time.</p>
-                <Button variant="outline" className="mt-6">View Archive</Button>
+                <Button variant="outline" className="mt-6 border-primary text-primary">View Archive</Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -197,44 +346,98 @@ export default function AdminDashboard() {
           <TabsContent value="master-calendar">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="md:col-span-2 border-none shadow-md">
-                <CardHeader>
-                  <CardTitle>Calendar Lock Control</CardTitle>
-                  <CardDescription>Instantly block dates for state emergencies, maintenance, or high-security VIP movements.</CardDescription>
+                <CardHeader className="bg-secondary/50 border-b">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-lg">Active Administrative Blocks</CardTitle>
+                  </div>
+                  <CardDescription>Dates currently reserved for Government use or maintenance.</CardDescription>
                 </CardHeader>
-                <CardContent className="h-[400px] flex flex-col items-center justify-center border m-6 rounded-lg bg-secondary/10 border-dashed">
-                   <Calendar className="h-12 w-12 text-primary/20 mb-4" />
-                   <p className="text-muted-foreground font-medium">Interactive Master Calendar Loading...</p>
-                   <Button variant="link" className="text-primary mt-2">Open Expanded View</Button>
+                <CardContent className="p-0">
+                  {blockedDates.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="font-bold">Date</TableHead>
+                          <TableHead className="font-bold">Classification</TableHead>
+                          <TableHead className="font-bold">Reason / Event</TableHead>
+                          <TableHead className="text-right font-bold">Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {blockedDates.map((block) => (
+                          <TableRow key={block.id}>
+                            <TableCell className="font-bold">{format(block.date, "PP")}</TableCell>
+                            <TableCell>
+                              <Badge variant={block.type === 'Emergency' ? 'destructive' : 'secondary'} className="font-bold">
+                                {block.type.toUpperCase()}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-sm">{block.reason}</TableCell>
+                            <TableCell className="text-right">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => removeBlock(block.id)}
+                                className="text-muted-foreground hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="p-12 text-center text-muted-foreground">
+                      <CalendarDays className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                      <p>No active administrative blocks found.</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
+
               <div className="space-y-6">
                 <Card className="border-none shadow-md bg-primary text-white">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <AlertTriangle className="h-5 w-5 text-accent" /> 
-                      Force Revocation
+                      Quick Revocation
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-xs opacity-80 leading-relaxed">Cancel any confirmed booking for emergency administrative reasons. Automatic refund will be initiated.</p>
+                    <p className="text-xs opacity-80 leading-relaxed">Cancel any specific confirmed booking for non-compliance or internal security reasons.</p>
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase font-bold text-white/60">Booking Reference ID</Label>
                       <Input className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:bg-white/20" placeholder="e.g. BR-4092" />
                     </div>
-                    <Button variant="secondary" className="w-full bg-accent text-primary hover:bg-accent/90 border-none font-bold" onClick={() => toast({ title: "Revocation Processed", description: "Reference has been cancelled and refund queued.", variant: "destructive" })}>
+                    <Button 
+                      variant="secondary" 
+                      className="w-full bg-accent text-primary hover:bg-accent/90 border-none font-bold" 
+                      onClick={() => toast({ title: "Revocation Processed", description: "Reference has been cancelled and refund queued.", variant: "destructive" })}
+                    >
                       Revoke Booking
                     </Button>
                   </CardContent>
                 </Card>
+
                 <Card className="border-none shadow-md border-l-4 border-accent">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Administrative Block</CardTitle>
+                  <CardHeader className="pb-2 bg-accent/5">
+                    <CardTitle className="text-lg">System Health</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-xs text-muted-foreground">Quickly reserve dates for Government Internal Meetings or State Functions.</p>
-                    <Button className="w-full bg-primary font-bold">
-                      New Admin Block
-                    </Button>
+                  <CardContent className="pt-4 space-y-4">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Payment Gateway:</span>
+                      <span className="text-green-600 font-bold">ONLINE</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">OTP Service:</span>
+                      <span className="text-green-600 font-bold">STABLE</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Audit Engine:</span>
+                      <span className="text-green-600 font-bold">LOGGING</span>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
