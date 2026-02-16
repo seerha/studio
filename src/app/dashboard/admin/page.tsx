@@ -56,19 +56,24 @@ export default function AdminDashboard() {
   ]);
 
   const [blockedDates, setBlockedDates] = useState<{id: string, date: Date, reason: string, type: string}[]>([]);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   useEffect(() => {
     const savedBlocks = localStorage.getItem("govbook_blocked_dates");
     if (savedBlocks) {
-      const parsed = JSON.parse(savedBlocks).map((b: any) => ({
-        ...b,
-        date: new Date(b.date)
-      }));
-      setBlockedDates(parsed);
+      try {
+        const parsed = JSON.parse(savedBlocks).map((b: any) => ({
+          ...b,
+          date: new Date(b.date)
+        }));
+        setBlockedDates(parsed);
+      } catch (e) {
+        console.error("Failed to parse blocked dates", e);
+      }
     } else {
       const initialBlocks = [
-        { id: "BLOCK-001", date: new Date(2025, 4, 20), reason: "State G20 Preparation", type: "Emergency" },
-        { id: "BLOCK-002", date: new Date(2025, 5, 10), reason: "VIP Visit (Hon. PM)", type: "Security" },
+        { id: "BLOCK-001", date: new Date(2025, 2, 20), reason: "State G20 Preparation", type: "Security" },
+        { id: "BLOCK-002", date: new Date(2025, 2, 10), reason: "VIP Visit (Hon. PM)", type: "Security" },
       ];
       setBlockedDates(initialBlocks);
       localStorage.setItem("govbook_blocked_dates", JSON.stringify(initialBlocks));
@@ -144,6 +149,11 @@ export default function AdminDashboard() {
   const pendingRequests = allBookings.filter(b => b.status === 'pending');
   const approvedBookings = allBookings.filter(b => b.status === 'approved');
 
+  const handleDateSelect = (date: Date | undefined) => {
+    setOverrideDate(date);
+    setIsPopoverOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-secondary/30">
       <Navbar />
@@ -178,15 +188,20 @@ export default function AdminDashboard() {
                 <div className="py-4 space-y-4">
                   <div className="space-y-2">
                     <Label>Select Target Date</Label>
-                    <Popover>
+                    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                       <PopoverTrigger asChild>
                         <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal border-primary/20", !overrideDate && "text-muted-foreground")}>
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {overrideDate ? format(overrideDate, "PPP") : <span>Pick a date to block</span>}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar mode="single" selected={overrideDate} onSelect={setOverrideDate} initialFocus />
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar 
+                          mode="single" 
+                          selected={overrideDate} 
+                          onSelect={handleDateSelect} 
+                          initialFocus 
+                        />
                       </PopoverContent>
                     </Popover>
                   </div>
@@ -204,7 +219,11 @@ export default function AdminDashboard() {
                   </div>
                   <div className="space-y-2">
                     <Label>Specific Details</Label>
-                    <Input placeholder="e.g. G20 Summit Preparation" value={overrideReason} onChange={(e) => setOverrideReason(e.target.value)} />
+                    <Input 
+                      placeholder="e.g. G20 Summit Preparation" 
+                      value={overrideReason} 
+                      onChange={(e) => setOverrideReason(e.target.value)} 
+                    />
                   </div>
                 </div>
 
