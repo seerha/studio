@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -47,7 +47,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function AdminDashboard() {
   const { toast } = useToast();
   
-  // Simulated State for All Bookings
   const [allBookings, setAllBookings] = useState([
     { id: "BR-4092", user: "Dept of Science", category: "Cat A", event: "National Science Symposium", date: "Oct 14, 2026", vip: "Yes", status: "pending" },
     { id: "BR-4105", user: "Green NGO", category: "Cat B", event: "Eco-Summit 2025", date: "Nov 12, 2025", vip: "No", status: "approved" },
@@ -56,13 +55,26 @@ export default function AdminDashboard() {
     { id: "BR-4205", user: "Medical Association", category: "Cat B", event: "Healthcare Webinar", date: "Feb 10, 2026", vip: "No", status: "pending" },
   ]);
 
-  // Simulated State for Blocked Dates
-  const [blockedDates, setBlockedDates] = useState([
-    { id: "BLOCK-001", date: new Date(2025, 4, 20), reason: "State G20 Preparation", type: "Emergency" },
-    { id: "BLOCK-002", date: new Date(2025, 5, 10), reason: "VIP Visit (Hon. PM)", type: "Security" },
-  ]);
+  const [blockedDates, setBlockedDates] = useState<{id: string, date: Date, reason: string, type: string}[]>([]);
 
-  // Form State
+  useEffect(() => {
+    const savedBlocks = localStorage.getItem("govbook_blocked_dates");
+    if (savedBlocks) {
+      const parsed = JSON.parse(savedBlocks).map((b: any) => ({
+        ...b,
+        date: new Date(b.date)
+      }));
+      setBlockedDates(parsed);
+    } else {
+      const initialBlocks = [
+        { id: "BLOCK-001", date: new Date(2025, 4, 20), reason: "State G20 Preparation", type: "Emergency" },
+        { id: "BLOCK-002", date: new Date(2025, 5, 10), reason: "VIP Visit (Hon. PM)", type: "Security" },
+      ];
+      setBlockedDates(initialBlocks);
+      localStorage.setItem("govbook_blocked_dates", JSON.stringify(initialBlocks));
+    }
+  }, []);
+
   const [overrideDate, setOverrideDate] = useState<Date>();
   const [overrideReason, setOverrideReason] = useState("");
   const [overrideType, setOverrideType] = useState("Emergency");
@@ -108,7 +120,10 @@ export default function AdminDashboard() {
       type: overrideType,
     };
 
-    setBlockedDates(prev => [newBlock, ...prev]);
+    const updatedBlocks = [newBlock, ...blockedDates];
+    setBlockedDates(updatedBlocks);
+    localStorage.setItem("govbook_blocked_dates", JSON.stringify(updatedBlocks));
+
     toast({
       title: "State Override Activated",
       description: `The auditorium has been blocked for ${format(overrideDate, "PPP")}.`,
@@ -120,7 +135,9 @@ export default function AdminDashboard() {
   };
 
   const removeBlock = (id: string) => {
-    setBlockedDates(prev => prev.filter(b => b.id !== id));
+    const updatedBlocks = blockedDates.filter(b => b.id !== id);
+    setBlockedDates(updatedBlocks);
+    localStorage.setItem("govbook_blocked_dates", JSON.stringify(updatedBlocks));
     toast({ title: "Block Lifted", description: "The slot is now open for public booking." });
   };
 

@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,19 +12,29 @@ import Link from "next/link";
 
 export default function AvailabilityPage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [blockedDates, setBlockedDates] = useState<Date[]>([]);
+  const [pendingDates, setPendingDates] = useState<Date[]>([]);
 
-  // Mock booked dates
-  const bookedDates = [
-    new Date(2025, 2, 10),
-    new Date(2025, 2, 11),
-    new Date(2025, 2, 15),
-  ];
+  useEffect(() => {
+    // Sync with Admin Dashboard's blocks
+    const savedBlocks = localStorage.getItem("govbook_blocked_dates");
+    if (savedBlocks) {
+      const parsed = JSON.parse(savedBlocks).map((b: any) => new Date(b.date));
+      setBlockedDates(parsed);
+    } else {
+      // Defaults if none exist
+      setBlockedDates([
+        new Date(2025, 2, 10),
+        new Date(2025, 2, 11),
+      ]);
+    }
 
-  // Mock pending dates
-  const pendingDates = [
-    new Date(2025, 2, 20),
-    new Date(2025, 2, 25),
-  ];
+    // Mock pending dates
+    setPendingDates([
+      new Date(2025, 2, 20),
+      new Date(2025, 2, 25),
+    ]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -50,12 +61,12 @@ export default function AvailabilityPage() {
                       onSelect={setDate}
                       className="rounded-md border shadow-sm"
                       modifiers={{
-                        booked: bookedDates,
+                        booked: blockedDates,
                         pending: pendingDates,
                       }}
                       modifiersStyles={{
-                        booked: { backgroundColor: 'hsl(var(--destructive))', color: 'white' },
-                        pending: { backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--primary))' },
+                        booked: { backgroundColor: 'hsl(var(--destructive))', color: 'white', borderRadius: '4px' },
+                        pending: { backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--primary))', borderRadius: '4px' },
                       }}
                     />
                   </div>
