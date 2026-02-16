@@ -1,0 +1,830 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the GovBook portal. This includes requesters, verifying officers, approving authorities, and auditorium managers. Authentication details (like passwords) are assumed to be managed by an external authentication system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address, used for communication and OTP verification.",
+          "format": "email"
+        },
+        "mobileNumber": {
+          "type": "string",
+          "description": "The user's mobile number, used for OTP verification and communication."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the user."
+        },
+        "userRoleId": {
+          "type": "string",
+          "description": "Reference to the UserRole entity, defining the user's overarching system role (e.g., RegisteredRequester, VerifyingOfficer). (Relationship: UserRole 1:N User)"
+        },
+        "requesterCategoryId": {
+          "type": "string",
+          "description": "Reference to the RequesterCategory entity, defining the user's booking category (A, B, or C) which impacts tariff and priority. Applicable only for 'RegisteredRequester' roles. (Relationship: RequesterCategory 1:N User)"
+        },
+        "verificationStatus": {
+          "type": "string",
+          "description": "The current verification status of the user's account or assigned category. Possible values: 'Pending', 'Verified', 'Rejected'."
+        },
+        "verificationOfficerId": {
+          "type": "string",
+          "description": "Reference to the User (Verifying Officer) who approved or rejected this user's category verification. (Relationship: User 1:N User - self-referencing for VerifyingOfficer)"
+        },
+        "verificationDate": {
+          "type": "string",
+          "description": "The date and time when the user's category verification status was last updated.",
+          "format": "date-time"
+        },
+        "registrationDate": {
+          "type": "string",
+          "description": "The date and time when the user's account was registered.",
+          "format": "date-time"
+        },
+        "isApprovedForBooking": {
+          "type": "boolean",
+          "description": "A boolean flag indicating if the user is fully verified and approved to initiate booking requests."
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "mobileNumber",
+        "firstName",
+        "lastName",
+        "userRoleId",
+        "verificationStatus",
+        "registrationDate",
+        "isApprovedForBooking"
+      ]
+    },
+    "UserRole": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserRole",
+      "type": "object",
+      "description": "Defines the distinct functional roles within the GovBook portal, dictating access permissions and system responsibilities.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserRole entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the role (e.g., 'Guest', 'RegisteredRequester', 'VerifyingOfficer', 'ApprovingAuthority', 'AuditoriumManager')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed explanation of the role's purpose and system privileges."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description"
+      ]
+    },
+    "RequesterCategory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "RequesterCategory",
+      "type": "object",
+      "description": "Defines the official categories for verified requesters, which determine booking priority and applicable tariff rates.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the RequesterCategory entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The descriptive name of the category (e.g., 'Category A (Govt. Departments)', 'Category B (NGOs/Educational)', 'Category C (Private/Commercial)')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the category, including its eligibility criteria and benefits."
+        },
+        "priorityLevel": {
+          "type": "number",
+          "description": "A numerical value indicating the booking priority associated with this category, where lower numbers typically denote higher priority."
+        },
+        "baseTariffRate": {
+          "type": "number",
+          "description": "The base rental rate (e.g., daily rent) applied to bookings made by users in this category."
+        },
+        "baseSecurityDepositRate": {
+          "type": "number",
+          "description": "The base refundable security deposit amount required for bookings made by users in this category."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "priorityLevel",
+        "baseTariffRate",
+        "baseSecurityDepositRate"
+      ]
+    },
+    "VerificationDocument": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "VerificationDocument",
+      "type": "object",
+      "description": "Stores metadata and secure references to documents uploaded by users for category verification or specific event security clearances.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the VerificationDocument entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who uploaded this document. (Relationship: User 1:N VerificationDocument)"
+        },
+        "documentType": {
+          "type": "string",
+          "description": "The type of document uploaded (e.g., 'DepartmentLetterhead', 'SocietyRegistration', 'PANCard', 'PoliceClearance')."
+        },
+        "documentUrl": {
+          "type": "string",
+          "description": "The secure, encrypted URL where the document file is stored (e.g., in an AWS S3 bucket).",
+          "format": "uri"
+        },
+        "uploadDate": {
+          "type": "string",
+          "description": "The date and time when the document was uploaded to the system.",
+          "format": "date-time"
+        },
+        "verificationStatus": {
+          "type": "string",
+          "description": "The current verification status of this specific document. Possible values: 'Pending', 'Approved', 'Rejected'."
+        },
+        "rejectionReason": {
+          "type": "string",
+          "description": "The reason provided if the document was rejected during the verification process."
+        },
+        "verifiedByUserId": {
+          "type": "string",
+          "description": "Reference to the User (Verifying Officer) who last reviewed this document. (Relationship: User 1:N VerificationDocument)"
+        },
+        "verifiedDate": {
+          "type": "string",
+          "description": "The date and time when the document's verification status was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "documentType",
+        "documentUrl",
+        "uploadDate",
+        "verificationStatus"
+      ]
+    },
+    "Auditorium": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Auditorium",
+      "type": "object",
+      "description": "Represents the physical auditorium venue available for booking, including its characteristics and usage rules.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Auditorium entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The official name of the auditorium (e.g., 'Main Auditorium')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A general description of the auditorium, its location, and primary features."
+        },
+        "seatingCapacity": {
+          "type": "number",
+          "description": "The maximum number of people the auditorium can accommodate."
+        },
+        "facilities": {
+          "type": "array",
+          "description": "A list of available facilities and amenities within the auditorium (e.g., 'Projector', 'Sound System', 'Microphones', 'Green Room').",
+          "items": {
+            "type": "string"
+          }
+        },
+        "guidelines": {
+          "type": "string",
+          "description": "Specific rules and regulations for the use of the auditorium (e.g., 'No food or drink allowed inside', 'Strict time limits apply')."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "seatingCapacity"
+      ]
+    },
+    "Booking": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Booking",
+      "type": "object",
+      "description": "Represents a single booking request or a confirmed booking for the auditorium, tracking its lifecycle from proposal to completion.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Booking entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User (requester) who initiated this booking request. (Relationship: User 1:N Booking)"
+        },
+        "auditoriumId": {
+          "type": "string",
+          "description": "Reference to the Auditorium that is being booked. (Relationship: Auditorium 1:N Booking)"
+        },
+        "bookingDate": {
+          "type": "string",
+          "description": "The specific calendar date for which the auditorium is requested.",
+          "format": "date"
+        },
+        "eventName": {
+          "type": "string",
+          "description": "The official name of the event or function for which the auditorium is being booked."
+        },
+        "expectedGathering": {
+          "type": "number",
+          "description": "The estimated number of attendees or participants expected for the event."
+        },
+        "vipChiefGuestExpected": {
+          "type": "boolean",
+          "description": "A flag indicating if a VIP or Chief Guest is expected to attend the event, which may require additional security clearance."
+        },
+        "securityClearanceDocumentId": {
+          "type": "string",
+          "description": "Reference to the VerificationDocument entity for police/security clearance, if a VIP is expected. (Relationship: VerificationDocument 1:1 Booking)"
+        },
+        "proposalSubmissionDate": {
+          "type": "string",
+          "description": "The date and time when the initial booking proposal was submitted by the user.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the booking request. Possible values include: 'PendingAdminApproval', 'Approved', 'Rejected', 'PaymentPending', 'Paid', 'CancelledByRequester', 'ForceCancelledByAdmin', 'Completed'."
+        },
+        "approvingAuthorityId": {
+          "type": "string",
+          "description": "Reference to the User (Approving Authority/Admin) who made the last decision (approval/rejection) on this booking. (Relationship: User 1:N Booking)"
+        },
+        "approvalDate": {
+          "type": "string",
+          "description": "The date and time when the booking request was officially approved by the Admin.",
+          "format": "date-time"
+        },
+        "rejectionReason": {
+          "type": "string",
+          "description": "The reason provided by the Approving Authority if the booking request was rejected."
+        },
+        "tariffCalculatedAmount": {
+          "type": "number",
+          "description": "The calculated rental fee for the auditorium based on the requester's category and any other applicable rules."
+        },
+        "securityDepositAmount": {
+          "type": "number",
+          "description": "The calculated refundable security deposit required for this specific booking."
+        },
+        "totalPayableAmount": {
+          "type": "number",
+          "description": "The sum of the tariff and security deposit, representing the total amount due from the requester."
+        },
+        "paymentLinkExpiryDate": {
+          "type": "string",
+          "description": "The date and time after which the payment link for this booking will no longer be valid, leading to auto-cancellation if unpaid.",
+          "format": "date-time"
+        },
+        "bookingReferenceId": {
+          "type": "string",
+          "description": "A unique, system-generated alphanumeric identifier for the confirmed booking, used for verification and on the Allotment Letter."
+        },
+        "allotmentLetterUrl": {
+          "type": "string",
+          "description": "The URL to the secure PDF Booking Allotment Letter generated upon successful payment.",
+          "format": "uri"
+        },
+        "isProhibitedEventConfirmed": {
+          "type": "boolean",
+          "description": "A boolean confirmation by the user stating that the event is not for political, religious, or commercial product-selling purposes, as per guidelines."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "auditoriumId",
+        "bookingDate",
+        "eventName",
+        "expectedGathering",
+        "vipChiefGuestExpected",
+        "proposalSubmissionDate",
+        "status",
+        "isProhibitedEventConfirmed"
+      ]
+    },
+    "Payment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Payment",
+      "type": "object",
+      "description": "Records all financial transactions related to booking payments made by users through the integrated payment gateway.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Payment entity."
+        },
+        "bookingId": {
+          "type": "string",
+          "description": "Reference to the Booking for which this payment was made. (Relationship: Booking 1:N Payment)"
+        },
+        "transactionId": {
+          "type": "string",
+          "description": "The unique transaction identifier provided by the external payment gateway for this specific transaction."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The total amount of money processed in this payment transaction."
+        },
+        "paymentDate": {
+          "type": "string",
+          "description": "The date and time when the payment was successfully processed and confirmed.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the payment transaction (e.g., 'Success', 'Failed', 'Pending', 'Refunded')."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "The method used for payment (e.g., 'StateGateway', 'BankTransfer')."
+        }
+      },
+      "required": [
+        "id",
+        "bookingId",
+        "transactionId",
+        "amount",
+        "paymentDate",
+        "status",
+        "paymentMethod"
+      ]
+    },
+    "Refund": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Refund",
+      "type": "object",
+      "description": "Records all refund transactions, including security deposit returns and refunds for cancelled bookings.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Refund entity."
+        },
+        "bookingId": {
+          "type": "string",
+          "description": "Reference to the Booking associated with this refund. (Relationship: Booking 1:N Refund)"
+        },
+        "originalPaymentId": {
+          "type": "string",
+          "description": "Reference to the original Payment entity that this refund is offsetting. (Relationship: Payment 1:N Refund)"
+        },
+        "clearanceReportId": {
+          "type": "string",
+          "description": "Reference to the ClearanceReport that initiated or influenced this refund, if applicable. (Relationship: ClearanceReport 1:1 Refund)"
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of money that was refunded."
+        },
+        "refundDate": {
+          "type": "string",
+          "description": "The date and time when the refund transaction was processed.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the refund transaction (e.g., 'Initiated', 'Completed', 'Failed')."
+        },
+        "deductionAmount": {
+          "type": "number",
+          "description": "Any amount deducted from the original payment before the refund was issued (e.g., cancellation fees, damage charges)."
+        },
+        "refundReason": {
+          "type": "string",
+          "description": "The reason for issuing the refund (e.g., 'Security Deposit Return', 'Booking Cancellation - User', 'Booking Cancellation - Admin Force')."
+        }
+      },
+      "required": [
+        "id",
+        "bookingId",
+        "amount",
+        "refundDate",
+        "status",
+        "refundReason"
+      ]
+    },
+    "ClearanceReport": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ClearanceReport",
+      "type": "object",
+      "description": "Details the post-event inspection of the auditorium by the Auditorium Manager to assess compliance and potential damages.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ClearanceReport entity."
+        },
+        "bookingId": {
+          "type": "string",
+          "description": "Reference to the Booking for which this clearance report is generated. (Relationship: Booking 1:1 ClearanceReport)"
+        },
+        "auditoriumManagerId": {
+          "type": "string",
+          "description": "Reference to the User (Auditorium Manager) who conducted the post-event inspection. (Relationship: User 1:N ClearanceReport)"
+        },
+        "inspectionDate": {
+          "type": "string",
+          "description": "The date and time when the post-event inspection of the auditorium was conducted.",
+          "format": "date-time"
+        },
+        "damagesFound": {
+          "type": "boolean",
+          "description": "A boolean flag indicating whether any damages to the auditorium or its property were observed during the inspection."
+        },
+        "damageDetails": {
+          "type": "string",
+          "description": "A detailed description of any damages found, including severity and estimated repair costs."
+        },
+        "violationDetails": {
+          "type": "string",
+          "description": "A description of any policy violations detected during the event (e.g., 'Food consumed inside', 'Exceeded capacity')."
+        },
+        "recommendedRefundAmount": {
+          "type": "number",
+          "description": "The final amount recommended for refund to the requester, after deducting any charges for damages or violations."
+        },
+        "reportSubmissionDate": {
+          "type": "string",
+          "description": "The date and time when this clearance report was formally submitted by the Auditorium Manager.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "bookingId",
+        "auditoriumManagerId",
+        "inspectionDate",
+        "damagesFound",
+        "recommendedRefundAmount",
+        "reportSubmissionDate"
+      ]
+    },
+    "BlockedDate": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BlockedDate",
+      "type": "object",
+      "description": "Represents specific dates on the auditorium's calendar that are explicitly made unavailable for public booking by an administrator due to internal functions, maintenance, or emergencies.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the BlockedDate entity."
+        },
+        "auditoriumId": {
+          "type": "string",
+          "description": "Reference to the Auditorium for which the date is being blocked. (Relationship: Auditorium 1:N BlockedDate)"
+        },
+        "blockedDate": {
+          "type": "string",
+          "description": "The specific calendar date that has been blocked, making it unavailable for public bookings.",
+          "format": "date"
+        },
+        "reason": {
+          "type": "string",
+          "description": "The reason provided for blocking this date (e.g., 'State Function', 'Maintenance', 'VIP Visit', 'Emergency Override')."
+        },
+        "adminId": {
+          "type": "string",
+          "description": "Reference to the User (Approving Authority/Admin) who initiated this date block. (Relationship: User 1:N BlockedDate)"
+        },
+        "blockingType": {
+          "type": "string",
+          "description": "The classification of the block (e.g., 'InternalBooking', 'Maintenance', 'Emergency', 'VIPMovement')."
+        },
+        "creationDate": {
+          "type": "string",
+          "description": "The date and time when this blocked date entry was created in the system.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "auditoriumId",
+        "blockedDate",
+        "reason",
+        "adminId",
+        "blockingType",
+        "creationDate"
+      ]
+    },
+    "AuditLog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AuditLog",
+      "type": "object",
+      "description": "Maintains an immutable record of all significant actions performed within the system, crucial for compliance, security, and traceability.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AuditLog entry."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who performed the action being logged. (Relationship: User 1:N AuditLog)"
+        },
+        "actionType": {
+          "type": "string",
+          "description": "Describes the specific type of action performed (e.g., 'UserRegistered', 'BookingApproved', 'DocumentVerified', 'ForceBookingCancellation')."
+        },
+        "entityType": {
+          "type": "string",
+          "description": "The type of data entity that was primarily affected by this action (e.g., 'User', 'Booking', 'VerificationDocument', 'Refund')."
+        },
+        "entityId": {
+          "type": "string",
+          "description": "The unique identifier of the specific data entity affected by the action."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The exact date and time when the action occurred.",
+          "format": "date-time"
+        },
+        "ipAddress": {
+          "type": "string",
+          "description": "The IP address from which the action was initiated."
+        },
+        "details": {
+          "type": "string",
+          "description": "Additional descriptive details about the action, potentially including old and new values of affected fields, or reasons for the action."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "actionType",
+        "entityType",
+        "entityId",
+        "timestamp",
+        "ipAddress"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores individual user profiles. Access is primarily restricted to the user themselves (owner) and specific administrative roles. The `userId` in the path corresponds to `request.auth.uid` for ownership checks.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user, matching `request.auth.uid`."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/verificationDocuments/{documentId}",
+        "definition": {
+          "entityName": "VerificationDocument",
+          "schema": {
+            "$ref": "#/backend/entities/VerificationDocument"
+          },
+          "description": "Stores verification documents uploaded by a specific user. Owned by the `userId` in the path for uploads and reads. `VerifyingOfficer`s have read/update access. Includes denormalized 'userId' matching the path parameter for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns this document, matching `request.auth.uid`."
+            },
+            {
+              "name": "documentId",
+              "description": "The unique identifier of the verification document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/userRoles/{userRoleId}",
+        "definition": {
+          "entityName": "UserRole",
+          "schema": {
+            "$ref": "#/backend/entities/UserRole"
+          },
+          "description": "Stores definitions of system roles (e.g., 'RegisteredRequester', 'VerifyingOfficer'). This is static, read-only data for most authenticated users, managed by administrators.",
+          "params": [
+            {
+              "name": "userRoleId",
+              "description": "The unique identifier for the user role."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/requesterCategories/{requesterCategoryId}",
+        "definition": {
+          "entityName": "RequesterCategory",
+          "schema": {
+            "$ref": "#/backend/entities/RequesterCategory"
+          },
+          "description": "Stores definitions of requester categories (e.g., 'Category A', 'Category B'). This is static, read-only data for most authenticated users, managed by administrators.",
+          "params": [
+            {
+              "name": "requesterCategoryId",
+              "description": "The unique identifier for the requester category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/auditoriums/{auditoriumId}",
+        "definition": {
+          "entityName": "Auditorium",
+          "schema": {
+            "$ref": "#/backend/entities/Auditorium"
+          },
+          "description": "Stores details about physical auditorium venues. This is generally public read-only data for all authenticated users, managed by administrators.",
+          "params": [
+            {
+              "name": "auditoriumId",
+              "description": "The unique identifier for the auditorium."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/bookings/{bookingId}",
+        "definition": {
+          "entityName": "Booking",
+          "schema": {
+            "$ref": "#/backend/entities/Booking"
+          },
+          "description": "Stores all booking requests and confirmed bookings. Includes denormalized 'userId' of the requester for authorization independence. Requesters can manage their own bookings, while Approving Authorities have broader access based on booking status.",
+          "params": [
+            {
+              "name": "bookingId",
+              "description": "The unique identifier for the booking."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/payments/{paymentId}",
+        "definition": {
+          "entityName": "Payment",
+          "schema": {
+            "$ref": "#/backend/entities/Payment"
+          },
+          "description": "Records all payment transactions. Includes denormalized 'userId' (requester) from the associated booking for authorization independence, allowing requesters to view their payment history without a `get()` call to the booking.",
+          "params": [
+            {
+              "name": "paymentId",
+              "description": "The unique identifier for the payment transaction."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/refunds/{refundId}",
+        "definition": {
+          "entityName": "Refund",
+          "schema": {
+            "$ref": "#/backend/entities/Refund"
+          },
+          "description": "Records all refund transactions. Includes denormalized 'userId' (requester) from the associated booking for authorization independence, allowing requesters to view their refunds without a `get()` call to the booking.",
+          "params": [
+            {
+              "name": "refundId",
+              "description": "The unique identifier for the refund transaction."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clearanceReports/{clearanceReportId}",
+        "definition": {
+          "entityName": "ClearanceReport",
+          "schema": {
+            "$ref": "#/backend/entities/ClearanceReport"
+          },
+          "description": "Stores post-event inspection reports. Includes denormalized 'userId' (requester) from the associated booking for authorization independence, allowing requesters to view their reports. Auditorium Managers have write access, and Approving Authorities have read access.",
+          "params": [
+            {
+              "name": "clearanceReportId",
+              "description": "The unique identifier for the clearance report."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/blockedDates/{blockedDateId}",
+        "definition": {
+          "entityName": "BlockedDate",
+          "schema": {
+            "$ref": "#/backend/entities/BlockedDate"
+          },
+          "description": "Stores dates explicitly blocked from booking. Read-only for all authenticated users (to check availability). Write access is restricted to 'ApprovingAuthority' roles, using `adminId` for ownership.",
+          "params": [
+            {
+              "name": "blockedDateId",
+              "description": "The unique identifier for the blocked date entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/auditLogs/{auditLogId}",
+        "definition": {
+          "entityName": "AuditLog",
+          "schema": {
+            "$ref": "#/backend/entities/AuditLog"
+          },
+          "description": "Immutable record of all significant system actions. Write access is restricted to the system/backend, and read access is for specific administrative roles only.",
+          "params": [
+            {
+              "name": "auditLogId",
+              "description": "The unique identifier for the audit log entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_verifyingOfficers/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "A collection used for Role-Based Access Control. Existence of a document at this path signifies that the `userId` is a 'VerifyingOfficer'. Rules will check for document existence for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who holds the 'VerifyingOfficer' role."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_approvingAuthorities/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "A collection used for Role-Based Access Control. Existence of a document at this path signifies that the `userId` is an 'ApprovingAuthority'. Rules will check for document existence for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who holds the 'ApprovingAuthority' role."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_auditoriumManagers/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "A collection used for Role-Based Access Control. Existence of a document at this path signifies that the `userId` is an 'AuditoriumManager'. Rules will check for document existence for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who holds the 'AuditoriumManager' role."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed following the core principles of Authorization Independence, Structural Segregation, and consistent Access Modeling to ensure security, scalability, and debuggability. \n\n**Authorization Independence via Denormalization:**\nTo eliminate `get()` calls in security rules and enable atomic operations, key authorization context is denormalized directly into relevant documents:\n1.  **Requester `userId` Denormalization:** The `userId` (of the booking requester) is explicitly included in `Booking`, `Payment`, `Refund`, and `ClearanceReport` documents. This allows security rules to directly check `request.auth.uid == resource.data.userId` for requester-specific access, without needing to fetch the parent `Booking` document or the `User` profile. For example, a user can only read their `Payment` or `Refund` by checking `resource.data.userId == request.auth.uid` directly on the `Payment` or `Refund` document.\n2.  **Role-Based Access Control (DBAC):** Instead of checking roles via `get()` on user profiles, dedicated top-level collections like `/roles_verifyingOfficers/{userId}` or `/roles_approvingAuthorities/{userId}` are used. Security rules can efficiently check `exists(/databases/$(database)/documents/roles_verifyingOfficers/$(request.auth.uid))` to verify a user's role. This is a constant-time check and fully authorization-independent.\n3.  **Path-Based Ownership:** For user-specific data like `VerificationDocument`s, they are nested under the user's path (`/users/{userId}/verificationDocuments/{documentId}`). This makes the `userId` in the path the implicit owner, simplifying ownership rules (`request.auth.uid == userId`).\n\n**Structural Segregation for Homogeneous Security Posture & QAPs:**\nCollections are structured such that all documents within a collection share the same security requirements, simplifying rules and enabling Query-as-Policy (QAP):\n1.  **`users/{userId}` and `users/{userId}/verificationDocuments/{documentId}`:** This segregation clearly defines private user data. The `VerificationDocument` subcollection specifically holds documents related to a user's verification, accessed by the `userId` owner and authorized `VerifyingOfficer`s. For QAPs, users can list their own documents, and officers can query pending documents for review.\n2.  **`userRoles`, `requesterCategories`, `auditoriums`:** These are top-level collections for static lookup data. They have a largely public read access for authenticated users, ensuring they can retrieve necessary information (e.g., auditorium details, category benefits) without complex authorization logic. Write access is restricted to administrative roles.\n3.  **`bookings/{bookingId}`:** This central collection holds all booking requests. The denormalized `userId` field facilitates QAPs: requesters can easily query for `bookings` where `userId == request.auth.uid` to see 'My Bookings'. Approving Authorities can query for `bookings` with `status == 'PendingAdminApproval'`. This structure avoids exposing unauthorized booking details during list operations, as rules can filter based on these fields.\n4.  **`payments/{paymentId}`, `refunds/{refundId}`, `clearanceReports/{clearanceReportId}`:** These transactional collections are top-level, and their denormalized `userId` (requester) allows for efficient QAPs where users can query their own transaction history, and managers can query relevant reports.\n5.  **`blockedDates/{blockedDateId}`:** This collection is publicly readable (for calendar availability) but writable only by `ApprovingAuthority`s, segregating public view from administrative control.\n6.  **`auditLogs/{auditLogId}`:** A dedicated, immutable collection for system actions, accessible only by administrative roles for review, and system-only for writes. This maintains a clear boundary for sensitive logging data.\n\nThis design leverages denormalization and structural segregation to achieve robust security rules, efficient query patterns (QAPs), and maintain authorization independence, making the system easier to debug and scale."
+  }
+}

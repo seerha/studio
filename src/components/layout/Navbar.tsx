@@ -25,12 +25,12 @@ export function Navbar() {
             <div className="rounded-full bg-accent p-1.5">
               <Building2 className="h-6 w-6 text-primary" />
             </div>
-            <span className="text-xl font-bold tracking-tight font-headline">GovBook Portal</span>
+            <span className="text-xl font-bold tracking-tight font-headline text-white">GovBook Portal</span>
           </Link>
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden md:flex items-center gap-6 text-white">
           <Link href="/availability" className="text-sm font-medium hover:text-accent transition-colors">
             Check Availability
           </Link>
@@ -39,7 +39,7 @@ export function Navbar() {
           </Link>
           {isLoggedIn ? (
             <>
-              <Link href="/dashboard" className="text-sm font-medium hover:text-accent transition-colors">
+              <Link href="/dashboard/requester" className="text-sm font-medium hover:text-accent transition-colors">
                 My Bookings
               </Link>
               <DropdownMenu>
@@ -57,7 +57,7 @@ export function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                    <Link href="/dashboard/requester" className="flex items-center gap-2 cursor-pointer">
                       <LayoutDashboard className="h-4 w-4" /> Dashboard
                     </Link>
                   </DropdownMenuItem>
@@ -70,7 +70,7 @@ export function Navbar() {
             </>
           ) : (
             <div className="flex items-center gap-3">
-              <Button variant="ghost" asChild className="hover:bg-primary-foreground/10">
+              <Button variant="ghost" asChild className="hover:bg-primary-foreground/10 text-white">
                 <Link href="/auth/login">Login</Link>
               </Button>
               <Button variant="default" className="bg-accent text-primary hover:bg-accent/90" asChild>
@@ -84,7 +84,7 @@ export function Navbar() {
         <div className="md:hidden">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="text-white">
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
