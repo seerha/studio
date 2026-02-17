@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -20,7 +21,6 @@ export function Navbar() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for simulated session
     const session = localStorage.getItem("govbook_session");
     if (session) {
       setUser(JSON.parse(session));
@@ -41,21 +41,17 @@ export function Navbar() {
             <div className="rounded-full bg-accent p-1.5">
               <Building2 className="h-6 w-6 text-primary" />
             </div>
-            <span className="text-xl font-bold tracking-tight font-headline text-white">GovBook Portal</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold tracking-tight font-headline text-white leading-tight">Vikas Bhawan Portal</span>
+              <span className="text-[10px] opacity-80 uppercase font-medium">Dept. of Rural Development, Punjab</span>
+            </div>
           </Link>
         </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6 text-white">
-          <Link href="/availability" className="text-sm font-medium hover:text-accent transition-colors">
-            Availability
-          </Link>
-          <Link href="/guidelines" className="text-sm font-medium hover:text-accent transition-colors">
-            Guidelines
-          </Link>
-          <Link href="/tariff" className="text-sm font-medium hover:text-accent transition-colors">
-            Tariff
-          </Link>
+        <nav className="hidden lg:flex items-center gap-6 text-white">
+          <Link href="/availability" className="text-sm font-medium hover:text-accent transition-colors">Availability</Link>
+          <Link href="/guidelines" className="text-sm font-medium hover:text-accent transition-colors">Guidelines</Link>
+          <Link href="/tariff" className="text-sm font-medium hover:text-accent transition-colors">Tariff</Link>
           {user ? (
             <>
               <Link 
@@ -100,8 +96,7 @@ export function Navbar() {
           )}
         </nav>
 
-        {/* Mobile Navigation */}
-        <div className="md:hidden">
+        <div className="lg:hidden">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="text-white">
@@ -119,7 +114,7 @@ export function Navbar() {
                   <>
                     <Link href={user.role === 'admin' ? '/dashboard/admin' : '/dashboard/requester'} className="text-lg font-medium">Dashboard</Link>
                     <Link href="/profile" className="text-lg font-medium">Profile</Link>
-                    <Button variant="destructive" onClick={handleLogout} className="justify-start px-0 font-medium text-lg h-auto" variant="ghost">
+                    <Button variant="ghost" onClick={handleLogout} className="justify-start px-0 font-medium text-lg h-auto">
                       <LogOut className="mr-2 h-5 w-5" /> Logout
                     </Button>
                   </>
