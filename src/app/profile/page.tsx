@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Fingerprint, Mail, Phone, Building, ShieldCheck, Edit3, UserCheck, FileBadge } from "lucide-react";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
