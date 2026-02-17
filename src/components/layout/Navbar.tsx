@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Building2, LayoutDashboard, LogOut, Menu, User, BookOpen, ReceiptText, ShieldCheck } from "lucide-react";
+import { Building2, LayoutDashboard, LogOut, Menu, User, ShieldCheck, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -55,9 +55,9 @@ export function Navbar() {
             <>
               <Link 
                 href={user.role === 'admin' ? '/dashboard/admin' : '/dashboard/requester'} 
-                className="hover:text-accent transition-all bg-white/10 px-4 py-2 rounded-xl flex items-center gap-2"
+                className="hover:text-accent transition-all bg-white/10 px-4 py-2 rounded-xl flex items-center gap-2 border border-white/5"
               >
-                <LayoutDashboard className="h-3 w-3" /> Dashboard
+                <ClipboardList className="h-3 w-3" /> Track Status
               </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -71,12 +71,17 @@ export function Navbar() {
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-2xl border-none">
-                  <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-widest text-muted-foreground p-3">Account Security</DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-2xl border-none bg-white">
+                  <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-widest text-muted-foreground p-3">Account Portal</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild className="p-3 rounded-xl cursor-pointer hover:bg-secondary">
+                    <Link href={user.role === 'admin' ? '/dashboard/admin' : '/dashboard/requester'} className="flex items-center gap-3 w-full font-bold text-xs uppercase tracking-tight">
+                      <LayoutDashboard className="h-4 w-4 text-primary" /> View Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="p-3 rounded-xl cursor-pointer hover:bg-secondary">
                     <Link href="/profile" className="flex items-center gap-3 w-full font-bold text-xs uppercase tracking-tight">
-                      <ShieldCheck className="h-4 w-4 text-primary" /> Organization Profile
+                      <ShieldCheck className="h-4 w-4 text-primary" /> Profile Security
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -92,7 +97,7 @@ export function Navbar() {
                 <Link href="/auth/login">Login</Link>
               </Button>
               <Button variant="default" className="bg-accent text-primary hover:bg-accent/90 font-black uppercase tracking-widest text-[10px] px-6 py-6 rounded-xl shadow-xl" asChild>
-                <Link href="/auth/register">Register Now</Link>
+                <Link href="/auth/register">Register Org</Link>
               </Button>
             </div>
           )}
@@ -114,7 +119,7 @@ export function Navbar() {
                 <hr className="border-white/10" />
                 {user ? (
                   <>
-                    <Link href={user.role === 'admin' ? '/dashboard/admin' : '/dashboard/requester'} className="hover:text-accent">Dashboard</Link>
+                    <Link href={user.role === 'admin' ? '/dashboard/admin' : '/dashboard/requester'} className="hover:text-accent">Track Status</Link>
                     <Link href="/profile" className="hover:text-accent">Profile</Link>
                     <Button variant="ghost" onClick={handleLogout} className="justify-start px-0 font-black text-sm uppercase tracking-widest h-auto text-destructive">
                       <LogOut className="mr-3 h-5 w-5" /> Terminate Session
@@ -123,7 +128,7 @@ export function Navbar() {
                 ) : (
                   <>
                     <Link href="/auth/login" className="hover:text-accent">Login</Link>
-                    <Link href="/auth/register" className="text-accent hover:underline">Register Now</Link>
+                    <Link href="/auth/register" className="text-accent hover:underline">Register Org</Link>
                   </>
                 )}
               </nav>
