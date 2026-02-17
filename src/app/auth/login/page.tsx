@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -26,6 +27,7 @@ export default function LoginPage() {
     // Perform real Firebase Anonymous Sign-in so useUser() works
     initiateAnonymousSignIn(auth);
 
+    // Give a small delay to ensure auth state change is being processed
     setTimeout(() => {
       const session = {
         role: role,
@@ -40,7 +42,7 @@ export default function LoginPage() {
       });
 
       router.push(role === 'admin' ? "/dashboard/admin" : "/dashboard/requester");
-    }, 800);
+    }, 1500);
   };
 
   const handleManualLogin = (e: React.FormEvent) => {

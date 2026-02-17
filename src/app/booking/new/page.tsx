@@ -6,9 +6,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { AlertTriangle, Calendar as CalendarIcon, Sparkles, Building2, ShieldCheck, Info, Ban, Clock } from "lucide-react";
+import { AlertTriangle, Calendar as CalendarIcon, Sparkles, Building2, ShieldCheck, Info, Ban, Clock, Lock, ArrowRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, addDays, isBefore, parseISO } from "date-fns";
@@ -26,7 +26,7 @@ export default function NewBookingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const firestore = useFirestore();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
 
   const [date, setDate] = useState<Date | undefined>();
   const [slot, setSlot] = useState("slot1");
@@ -92,11 +92,58 @@ export default function NewBookingPage() {
 
     toast({
       title: "Proposal Submitted",
-      description: `Request for ${slot === 'slot1' ? 'Slot 1' : 'Slot 2'} on ${format(date, 'PPP')} has been sent for review.`,
+      description: `Request for ${slot === 'slot1' ? 'Shift 1' : 'Shift 2'} on ${format(date, 'PPP')} has been sent for review.`,
     });
 
     router.push("/dashboard/requester");
   };
+
+  if (isUserLoading) {
+    return (
+      <div className="min-h-screen bg-secondary/30 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="font-black uppercase text-[10px] tracking-widest text-primary/60">Verifying Session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-secondary/30">
+        <Navbar />
+        <main className="container mx-auto px-4 py-20 flex justify-center">
+          <Card className="w-full max-w-md border-none shadow-2xl">
+            <CardHeader className="bg-destructive text-white rounded-t-lg text-center pb-8">
+              <div className="flex justify-center mb-4">
+                <div className="bg-white/20 p-3 rounded-full">
+                  <Lock className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              <CardTitle className="text-2xl font-black uppercase tracking-tight">Authentication Required</CardTitle>
+              <CardDescription className="text-white/80 font-bold uppercase text-[10px]">
+                Section 1.1: Official Allotment Proposals require authorized access.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-8 text-center space-y-6">
+              <p className="text-sm font-medium text-muted-foreground leading-relaxed uppercase">
+                You must be signed in to the Official State Booking Portal to submit a formal allotment proposal for the Vikas Bhawan Complex.
+              </p>
+              <Button className="w-full bg-primary hover:bg-primary/90 h-14 font-black uppercase tracking-widest text-xs" asChild>
+                <Link href="/auth/login">Proceed to Login <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            </CardContent>
+            <CardFooter className="bg-secondary/50 p-6 flex justify-center border-t">
+              <Button variant="link" className="text-primary font-black uppercase text-[10px]" asChild>
+                <Link href="/auth/register">Register New Organization</Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-secondary/30 pb-16">
@@ -156,7 +203,7 @@ export default function NewBookingPage() {
                       )}>
                         <RadioGroupItem value="slot1" id="slot1" />
                         <Label htmlFor="slot1" className="flex-1 cursor-pointer">
-                          <span className="font-black block text-sm">SLOT 1: MORNING / NOON</span>
+                          <span className="font-black block text-sm">SHIFT 1: MORNING</span>
                           <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">09:00 AM – 02:00 PM</span>
                         </Label>
                       </div>
@@ -166,7 +213,7 @@ export default function NewBookingPage() {
                       )}>
                         <RadioGroupItem value="slot2" id="slot2" />
                         <Label htmlFor="slot2" className="flex-1 cursor-pointer">
-                          <span className="font-black block text-sm">SLOT 2: EVENING</span>
+                          <span className="font-black block text-sm">SHIFT 2: EVENING</span>
                           <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">05:00 PM – 10:00 PM</span>
                         </Label>
                       </div>
@@ -277,7 +324,7 @@ export default function NewBookingPage() {
                   <div className="flex items-center gap-2 p-3 bg-primary/5 border border-primary/10 rounded-xl">
                     <Clock className="h-4 w-4 text-accent" />
                     <span className="text-sm font-black uppercase">
-                      {slot === 'slot1' ? 'Slot 1: 09:00 AM - 02:00 PM' : 'Slot 2: 05:00 PM - 10:00 PM'}
+                      {slot === 'slot1' ? 'Shift 1: 09:00 AM - 02:00 PM' : 'Shift 2: 05:00 PM - 10:00 PM'}
                     </span>
                   </div>
                 </div>
