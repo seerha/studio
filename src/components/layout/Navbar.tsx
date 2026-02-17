@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState, useEffect } from "react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { useRouter } from "next/navigation";
 
 export function Navbar() {
@@ -111,6 +111,10 @@ export function Navbar() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="bg-primary text-white border-l-4 border-accent">
+              <SheetHeader>
+                <SheetTitle className="sr-only">Menu</SheetTitle>
+                <SheetDescription className="sr-only">Navigation links for the portal</SheetDescription>
+              </SheetHeader>
               <nav className="flex flex-col gap-6 mt-12 font-black uppercase tracking-widest text-sm">
                 <Link href="/" className="hover:text-accent">Home</Link>
                 <Link href="/availability" className="hover:text-accent">Public Calendar</Link>
