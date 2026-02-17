@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, addDays, isBefore, parseISO } from "date-fns";
+import { format, addDays, isBefore, parseISO, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Link from "next/link";
@@ -51,6 +51,7 @@ export default function NewBookingPage() {
 
   // Form State
   const [date, setDate] = useState<Date | undefined>();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [slot, setSlot] = useState("slot1");
   const [eventName, setEventName] = useState("");
   const [eventPurpose, setEventPurpose] = useState("");
@@ -70,7 +71,13 @@ export default function NewBookingPage() {
 
     const paramDate = searchParams.get("date");
     const paramSlot = searchParams.get("slot");
-    if (paramDate) setDate(parseISO(paramDate));
+    
+    if (paramDate) {
+      const parsedDate = parseISO(paramDate);
+      if (isValid(parsedDate)) {
+        setDate(parsedDate);
+      }
+    }
     if (paramSlot) setSlot(paramSlot);
   }, [searchParams]);
 
@@ -249,7 +256,7 @@ export default function NewBookingPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-4">
                     <Label className="font-black text-xs uppercase tracking-widest text-primary/60">Target Event Date (Sec 1.1)</Label>
-                    <Popover>
+                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                       <PopoverTrigger asChild>
                         <Button
                           variant={"outline"}
@@ -266,7 +273,10 @@ export default function NewBookingPage() {
                         <Calendar
                           mode="single"
                           selected={date}
-                          onSelect={setDate}
+                          onSelect={(d) => {
+                            setDate(d);
+                            setIsCalendarOpen(false);
+                          }}
                           disabled={(date) => isBefore(date, minDate) || date > maxDate}
                           initialFocus
                         />
