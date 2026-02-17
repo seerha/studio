@@ -7,7 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Info, CalendarDays, Lock, AlertTriangle, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { Info, CalendarDays, Lock, AlertTriangle, Clock, CheckCircle2, AlertCircle, Users } from "lucide-react";
 import Link from "next/link";
 import { addDays, isBefore, isSameDay, format } from "date-fns";
 import { cn } from "@/lib/utils";
