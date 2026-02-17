@@ -25,7 +25,8 @@ import {
   Users,
   Upload,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Smartphone
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -62,6 +63,10 @@ export default function NewBookingPage() {
   const [agreed, setAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Identity Validation State
+  const [aadhar, setAadhar] = useState("");
+  const [mobile, setMobile] = useState("");
+
   const minDate = addDays(new Date(), 30);
   const maxDate = addDays(new Date(), 365);
 
@@ -81,7 +86,11 @@ export default function NewBookingPage() {
     if (paramSlot) setSlot(paramSlot);
   }, [searchParams]);
 
-  // Financial Calculations (Section 1.5, 14.4, 14.5)
+  // Validation Logic
+  const validateAadhar = (val: string) => /^\d{12}$/.test(val.replace(/\s/g, ""));
+  const validatePhone = (val: string) => /^[6-9]\d{9}$/.test(val.replace(/\D/g, ""));
+
+  // Financial Calculations
   const getBaseRent = () => {
     if (sessionUser?.category === 'govt') return 5000;
     if (sessionUser?.category === 'ngo') return 15000;
@@ -89,7 +98,7 @@ export default function NewBookingPage() {
   };
 
   const baseRent = getBaseRent();
-  const securityDeposit = baseRent * 2; // Standard government deposit multiplier
+  const securityDeposit = baseRent * 2;
   const collaborationSurcharge = isCollaboration ? baseRent * 0.10 : 0;
   const standeeFee = standeesCount * 2000;
   const totalRent = baseRent + collaborationSurcharge + standeeFee;
@@ -98,6 +107,16 @@ export default function NewBookingPage() {
     e.preventDefault();
     if (!user) {
       toast({ title: "Session Error", description: "Authentication failed. Re-login required.", variant: "destructive" });
+      return;
+    }
+
+    // Strict Validation
+    if (!validateAadhar(aadhar)) {
+      toast({ title: "Invalid Aadhar", description: "Please enter a valid 12-digit UIDAI number.", variant: "destructive" });
+      return;
+    }
+    if (!validatePhone(mobile)) {
+      toast({ title: "Invalid Mobile", description: "Please enter a valid 10-digit Indian mobile number.", variant: "destructive" });
       return;
     }
     if (!date) {
@@ -125,6 +144,8 @@ export default function NewBookingPage() {
       userDesignation: "Authorized Representative",
       organization: sessionUser?.name || "Department/PSU",
       category: sessionUser?.category || "A",
+      aadharReference: aadhar.slice(-4), // Store only last 4 for privacy in this prototype
+      officialMobile: mobile,
       auditoriumId: "main-auditorium",
       bookingDate: format(date, "yyyy-MM-dd"),
       slot: slot,
@@ -140,11 +161,6 @@ export default function NewBookingPage() {
       totalPayableAmount: totalRent + securityDeposit,
       expectedGathering: expectedGathering,
       isProhibitedEventConfirmed: agreed,
-      statutoryCheck: {
-        policePermission: "Pending",
-        fireSafety: "Pending",
-        copyrightNOC: "Pending"
-      }
     };
 
     if (firestore) {
@@ -152,7 +168,7 @@ export default function NewBookingPage() {
       
       toast({
         title: "Proposal Queued",
-        description: `Reference created for ${format(date, 'PPP')}. Proceeding to Tracking Portal.`,
+        description: `Reference created for ${format(date, 'PPP')}. Identity verified.`,
       });
 
       setTimeout(() => router.push("/dashboard/requester"), 1500);
@@ -224,19 +240,45 @@ export default function NewBookingPage() {
               <CardHeader className="bg-secondary/50 py-6 px-10">
                 <div className="flex items-center gap-3">
                   <ShieldCheck className="h-6 w-6 text-primary" />
-                  <CardTitle className="text-xl font-black uppercase text-primary tracking-tight">1. Requester Identity (Pre-Verified)</CardTitle>
+                  <CardTitle className="text-xl font-black uppercase text-primary tracking-tight">1. Representative Identity Verification</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="p-10 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-1">
-                  <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Official Organization</Label>
-                  <p className="text-sm font-black text-primary uppercase">{sessionUser?.name || 'Loading...'}</p>
+              <CardContent className="p-10 space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                      <Fingerprint className="h-3 w-3 text-accent" /> 12-Digit Aadhar UIDAI
+                    </Label>
+                    <Input 
+                      placeholder="XXXX XXXX XXXX" 
+                      className="py-6 rounded-xl border-2 font-black tracking-widest"
+                      maxLength={12}
+                      value={aadhar}
+                      onChange={(e) => setAadhar(e.target.value.replace(/\D/g, ""))}
+                    />
+                    {aadhar && !validateAadhar(aadhar) && (
+                      <p className="text-[8px] text-destructive font-bold uppercase">Must be exactly 12 digits</p>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                      <Smartphone className="h-3 w-3 text-accent" /> Official Mobile Number
+                    </Label>
+                    <Input 
+                      placeholder="9XXXXXXXXX" 
+                      className="py-6 rounded-xl border-2 font-black tracking-widest"
+                      maxLength={10}
+                      value={mobile}
+                      onChange={(e) => setMobile(e.target.value.replace(/\D/g, ""))}
+                    />
+                    {mobile && !validatePhone(mobile) && (
+                      <p className="text-[8px] text-destructive font-bold uppercase">Enter valid 10-digit mobile</p>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Aadhar UIDAI Reference</Label>
-                  <p className="text-sm font-black text-primary tracking-widest flex items-center gap-2">
-                    <Fingerprint className="h-4 w-4 text-accent" /> XXXX XXXX 0921
-                  </p>
+                  <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Organization Name</Label>
+                  <p className="text-sm font-black text-primary uppercase">{sessionUser?.name || 'Loading...'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -313,7 +355,7 @@ export default function NewBookingPage() {
               </CardContent>
             </Card>
 
-            {/* Step 3: Event Details & Surcharges */}
+            {/* Step 3: Event Details */}
             <Card className="border-none shadow-2xl rounded-3xl overflow-hidden">
               <CardHeader className="bg-secondary/80 border-b-2 py-8 px-10">
                 <div className="flex items-center gap-3">
@@ -351,13 +393,13 @@ export default function NewBookingPage() {
                         <Users className="h-5 w-5 text-primary" />
                         <Label className="font-black text-sm uppercase">Collaboration (Sec 14.4)</Label>
                       </div>
-                      <p className="text-[10px] text-primary/60 font-bold uppercase tracking-tight italic">Adds 10% rent surcharge for joint shows.</p>
+                      <p className="text-[10px] text-primary/60 font-bold uppercase tracking-tight italic">Adds 10% rent surcharge.</p>
                     </div>
                     <div className="flex items-center justify-between gap-4">
                       <Switch checked={isCollaboration} onCheckedChange={setIsCollaboration} />
                       {isCollaboration && (
                         <Input 
-                          placeholder="Name of Associate Entity" 
+                          placeholder="Associate Entity" 
                           className="flex-1 py-5 rounded-xl border-primary/20 font-bold text-xs" 
                           value={collaborationEntity}
                           onChange={(e) => setCollaborationEntity(e.target.value)}
@@ -372,7 +414,7 @@ export default function NewBookingPage() {
                         <Sparkles className="h-5 w-5 text-accent" />
                         <Label className="font-black text-sm uppercase">Sponsor Standees (Sec 14.5)</Label>
                       </div>
-                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">₹ 2,000 PER UNIT | MAX SIZE 6' × 3'</p>
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">₹ 2,000 PER UNIT</p>
                     </div>
                     <div className="flex items-center gap-4">
                       <Input 
@@ -382,10 +424,7 @@ export default function NewBookingPage() {
                         value={standeesCount} 
                         onChange={(e) => setStandeesCount(parseInt(e.target.value) || 0)} 
                       />
-                      <div className="space-y-1">
-                        <p className="text-[10px] text-destructive uppercase font-black">Mandatory Logo Disclosure</p>
-                        <p className="text-[8px] text-muted-foreground font-bold uppercase italic">Billing adjusted in total fee.</p>
-                      </div>
+                      <p className="text-[8px] text-muted-foreground font-bold uppercase italic">Billing adjusted in total.</p>
                     </div>
                   </div>
                 </div>
@@ -405,28 +444,19 @@ export default function NewBookingPage() {
                    <div className="p-6 border-2 border-dashed rounded-3xl bg-secondary/30 flex flex-col items-center text-center group hover:border-primary transition-all">
                     <CalendarIcon className="h-8 w-8 text-primary/40 mb-3" />
                     <h4 className="font-black text-[10px] uppercase mb-1 tracking-tight">Draft Event Schedule</h4>
-                    <p className="text-[8px] text-muted-foreground font-bold uppercase mb-4">MANDATORY FOR APPROVAL</p>
-                    <Button variant="outline" size="sm" className="border-primary text-primary font-black uppercase text-[9px] rounded-xl hover:bg-primary hover:text-white h-10 px-6">Upload PDF</Button>
+                    <Button variant="outline" size="sm" className="border-primary text-primary font-black uppercase text-[9px] rounded-xl h-10 px-6">Upload PDF</Button>
                   </div>
 
                   <div className="p-6 border-2 border-dashed rounded-3xl bg-secondary/30 flex flex-col items-center text-center group hover:border-accent transition-all">
                     <Building2 className="h-8 w-8 text-accent/40 mb-3" />
                     <h4 className="font-black text-[10px] uppercase mb-1 tracking-tight">Organization Seal & Letter</h4>
-                    <p className="text-[8px] text-muted-foreground font-bold uppercase mb-4">IDENTITY PROOF (SEC 13.3)</p>
-                    <Button variant="outline" size="sm" className="border-accent text-accent font-black uppercase text-[9px] rounded-xl hover:bg-accent hover:text-white h-10 px-6">Upload Evidence</Button>
+                    <Button variant="outline" size="sm" className="border-accent text-accent font-black uppercase text-[9px] rounded-xl h-10 px-6">Upload Evidence</Button>
                   </div>
-                </div>
-                
-                <div className="p-6 bg-amber-50 border-2 border-amber-200 rounded-2xl flex gap-4">
-                  <AlertCircle className="h-6 w-6 text-amber-600 shrink-0" />
-                  <p className="text-[10px] font-bold text-amber-800 uppercase leading-relaxed">
-                    Note: Statutory licenses (Police, Fire, Copyright) are required at least **4 days prior** to the event via the Dashboard Tracker.
-                  </p>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Step 5: Statutory Compliance Checkbox */}
+            {/* Step 5: Statutory Compliance */}
             <div className="p-8 bg-destructive/10 border-2 border-destructive/20 rounded-[2rem] flex gap-6 shadow-sm">
               <div className="bg-destructive p-1.5 rounded-full h-fit mt-1">
                 <Ban className="h-6 w-6 text-white" />
@@ -442,7 +472,7 @@ export default function NewBookingPage() {
                     onChange={(e) => setAgreed(e.target.checked)}
                   />
                   <Label htmlFor="declare" className="text-[11px] text-primary/80 font-bold leading-relaxed uppercase cursor-pointer">
-                    I solemnly affirm that the information provided is 100% accurate. I acknowledge that misrepresentation of identity or category (e.g. booking for a third-party) will result in immediate cancellation, forfeiture of all fees (Section 13.3), and legal proceedings. I agree to strictly follow all 15 sections of the Terms & Conditions.
+                    I solemnly affirm that the information provided is 100% accurate. I acknowledge that misrepresentation of identity or category will result in immediate cancellation, forfeiture of all fees (Section 13.3), and legal proceedings.
                   </Label>
                 </div>
               </div>
@@ -462,17 +492,17 @@ export default function NewBookingPage() {
             </div>
           </div>
 
-          {/* Pricing & Summary Sidebar */}
+          {/* Pricing Sidebar */}
           <div className="space-y-8">
             <Card className="border-none shadow-2xl rounded-[2.5rem] overflow-hidden sticky top-24 border-t-8 border-accent bg-white">
               <CardHeader className="bg-secondary/50 border-b-2 py-8 px-10">
                 <CardTitle className="text-lg font-black flex items-center gap-3 uppercase text-primary tracking-tighter">
-                  <Sparkles className="h-6 w-6 text-accent" /> Official Allotment Quote
+                  <Sparkles className="h-6 w-6 text-accent" /> Allotment Quote
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-10 space-y-8">
                 <div className="space-y-3">
-                  <p className="text-[10px] font-black uppercase text-primary/40 tracking-widest">Scheduled Slot:</p>
+                  <p className="text-[10px] font-black uppercase text-primary/40 tracking-widest">Selected Slot:</p>
                   <div className="flex items-center gap-3 p-4 bg-primary/5 border-2 border-primary/10 rounded-2xl">
                     <Clock className="h-5 w-5 text-accent" />
                     <div className="flex flex-col">
@@ -515,37 +545,11 @@ export default function NewBookingPage() {
                     <span className="font-mono">₹ {securityDeposit.toLocaleString()}</span>
                   </div>
                   <p className="text-[9px] font-bold italic leading-tight uppercase opacity-70">
-                    Refundable within 15 days post-event subject to damage assessment (Section 2.2).
+                    Refundable post-event (Section 2.2).
                   </p>
-                </div>
-                
-                <div className="pt-4 space-y-4">
-                  <p className="font-black text-[10px] uppercase text-primary tracking-widest border-b pb-2">Mandatory Seating (Sec 8.1)</p>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-secondary/50 rounded-xl text-center">
-                      <p className="text-xl font-black text-primary">725</p>
-                      <p className="text-[8px] font-bold uppercase text-muted-foreground">General Seats</p>
-                    </div>
-                    <div className="p-4 bg-accent/10 border border-accent/20 rounded-xl text-center">
-                      <p className="text-xl font-black text-accent">25</p>
-                      <p className="text-[8px] font-bold uppercase text-primary">Dept. Reserved</p>
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>
-
-            <div className="p-6 bg-white rounded-3xl shadow-xl border-2 border-primary/5 flex gap-4">
-              <div className="bg-primary/10 p-3 rounded-2xl h-fit">
-                <Info className="h-6 w-6 text-primary" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase text-primary">Section 2.1 Mandate</p>
-                <p className="text-[9px] text-muted-foreground font-bold leading-tight uppercase">
-                  Full payment of rent and security is required for allotment confirmation. No verbal bookings.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </main>
