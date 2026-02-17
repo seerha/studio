@@ -14,13 +14,13 @@ service cloud.firestore {
      * - User-specific data is stored under /users/{userId}.
      * - Transactional data (bookings, payments) is top-level but contains internal ownership fields.
      * - Role-based permissions are managed via existence checks in dedicated "roles_" collections.
-     * - Lookup data (auditoriums, categories) is globally readable by authenticated users.
+     * - Lookup data (auditoriums, categories) is globally readable to support the public calendar.
      *
      * Key Security Decisions:
+     * - Public Read for Availability: Bookings and Blocked Dates are readable by all to show calendar status.
      * - No Public Writes: Write operations always require authenticated authorization.
      * - RBAC via Collection Existence: Roles are verified using constant-time `exists()` checks.
      * - Immutability: Critical relational fields (like userId) are enforced as immutable during updates.
-     * - Prototyping Flexibility: Rules focus on "Who" (Authorization) rather than "What" (Schema/Types).
      */
 
     // --- Helper Functions ---
@@ -56,30 +56,20 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == ownerId;
     }
 
-    // The 'isExistingOwner' function was unused and has been removed, resolving the related warnings.
-
     // --- Collection Rules ---
 
     /**
      * @description Individual user profiles. Only the owner or administrative officers can access.
-     * @path /users/{userId}
-     * @allow (get, list) if the requester is the owner or an admin.
-     * @deny (create) if the userId does not match the auth UID.
-     * @principle Ownership and Role-Based Access.
      */
     match /users/{userId} {
       allow get, list: if isOwner(userId) || isVerifyingOfficer() || isApprovingAuthority();
       allow create: if isOwner(userId);
       allow update: if (isOwner(userId) || isVerifyingOfficer() || isApprovingAuthority()) && resource != null;
-      allow delete: if false; // User accounts are typically archived, not deleted.
+      allow delete: if false;
     }
 
     /**
      * @description Identity verification documents uploaded by users.
-     * @path /users/{userId}/verificationDocuments/{documentId}
-     * @allow (create) if the requester is the path owner and sets their userId correctly.
-     * @deny (update) if a non-officer tries to change a document they don't own.
-     * @principle Path-based ownership with secondary administrative read access.
      */
     match /users/{userId}/verificationDocuments/{documentId} {
       allow get, list: if isOwner(userId) || isVerifyingOfficer();
@@ -89,26 +79,18 @@ service cloud.firestore {
     }
 
     /**
-     * @description Static lookup collections for system roles, categories, and auditorium details.
-     * @path /userRoles/{id}, /requesterCategories/{id}, /auditoriums/{id}
-     * @allow (get, list) for any authenticated user.
-     * @deny (write) for standard users.
-     * @principle Public Read with Admin-Only Writes.
+     * @description Static lookup collections. Public read to support the public booking workflow.
      */
     match /{collection}/{id} {
-      allow get, list: if isSignedIn() && (collection == "userRoles" || collection == "requesterCategories" || collection == "auditoriums");
+      allow get, list: if (collection == "userRoles" || collection == "requesterCategories" || collection == "auditoriums");
       allow create, update, delete: if isApprovingAuthority() && (collection == "userRoles" || collection == "requesterCategories" || collection == "auditoriums");
     }
 
     /**
-     * @description Central booking repository.
-     * @path /bookings/{bookingId}
-     * @allow (create) if the requester sets themselves as the owner.
-     * @deny (list) for users who did not create the booking (unless Admin).
-     * @principle Internal data ownership via denormalized userId.
+     * @description Central booking repository. Public read to show availability on the calendar.
      */
     match /bookings/{bookingId} {
-      allow get, list: if isSignedIn() && (isDataOwner(resource.data.userId) || isApprovingAuthority() || isAuditoriumManager());
+      allow get, list: if true; // Public read for Master Calendar visibility
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if (isDataOwner(resource.data.userId) || isApprovingAuthority()) && resource != null;
       allow delete: if isApprovingAuthority() && resource != null;
@@ -116,10 +98,6 @@ service cloud.firestore {
 
     /**
      * @description Transactional records for payments and refunds.
-     * @path /payments/{id}, /refunds/{id}
-     * @allow (get, list) if the requester is the linked owner.
-     * @deny (write) for standard users; usually handled by system/admin.
-     * @principle Read-only access for owners to their own financial history.
      */
     match /{collection}/{id} {
       allow get, list: if isSignedIn() && (collection == "payments" || collection == "refunds") && (isDataOwner(resource.data.userId) || isApprovingAuthority());
@@ -129,10 +107,6 @@ service cloud.firestore {
 
     /**
      * @description Post-event inspection reports.
-     * @path /clearanceReports/{reportId}
-     * @allow (create) only by auditorium managers.
-     * @deny (get) for users who are not the requester linked to the booking.
-     * @principle Resource-specific role based authorization.
      */
     match /clearanceReports/{reportId} {
       allow get, list: if isSignedIn() && (isDataOwner(resource.data.userId) || isAuditoriumManager() || isApprovingAuthority());
@@ -142,23 +116,15 @@ service cloud.firestore {
     }
 
     /**
-     * @description Calendar management for blocked dates.
-     * @path /blockedDates/{id}
-     * @allow (get, list) for all users to check availability.
-     * @deny (write) for everyone except Approving Authorities.
-     * @principle Public read with restricted administrative control.
+     * @description Calendar management for blocked dates. Public read to check availability.
      */
     match /blockedDates/{id} {
-      allow get, list: if isSignedIn();
+      allow get, list: if true; // Public read for Master Calendar visibility
       allow create, update, delete: if isApprovingAuthority();
     }
 
     /**
      * @description System audit logs.
-     * @path /auditLogs/{id}
-     * @allow (get, list) only for administrators.
-     * @deny (write) for all client-side requests (System/Admin only).
-     * @principle Immutable system logging.
      */
     match /auditLogs/{id} {
       allow get, list: if isApprovingAuthority();
@@ -167,15 +133,9 @@ service cloud.firestore {
 
     /**
      * @description Role-Based Access Control (RBAC) verification collections.
-     * @path /roles_.../{userId}
-     * @allow (get) for authenticated users to verify roles.
-     * @deny (write) for all client-side requests.
-     * @principle Structural segregation for role management.
      */
     match /{roleCollection}/{userId} {
-      // Replaced `startsWith` with string slicing to resolve "Invalid function name" warnings.
-      allow get: if isSignedIn() && roleCollection[0:6] == "roles_";
-      // Replaced `startsWith` with string slicing to resolve "Invalid function name" warnings.
+      allow get: if true; // Allow checking existence for role verification
       allow list: if isApprovingAuthority() && roleCollection[0:6] == "roles_";
       allow create, update, delete: if false;
     }
