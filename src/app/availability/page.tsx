@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,8 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Info, CalendarDays, Lock, AlertTriangle, Clock, CheckCircle2, AlertCircle, Users } from "lucide-react";
 import Link from "next/link";
-import { addDays, isBefore, isSameDay, format } from "date-fns";
+import { addDays, isBefore, isSameDay, format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useCollection, useMemoFirebase, useFirestore } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
 
 type SlotStatus = "available" | "pending" | "booked";
 
@@ -22,56 +24,38 @@ interface SlotInfo {
 }
 
 export default function AvailabilityPage() {
+  const firestore = useFirestore();
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [adminBlocks, setAdminBlocks] = useState<{ date: Date; type: string }[]>([]);
-  
-  // Simulated statuses for demo purposes
-  // In a real app, these would be fetched from Firestore based on the selected date
-  const [pendingSlots, setPendingSlots] = useState<{ date: string; slot: string }[]>([]);
-  const [confirmedSlots, setConfirmedSlots] = useState<{ date: string; slot: string }[]>([]);
-
   const minBookingDate = addDays(new Date(), 30);
 
-  useEffect(() => {
-    // Sync with Admin Dashboard's blocks
-    const savedBlocks = localStorage.getItem("govbook_blocked_dates");
-    if (savedBlocks) {
-      const parsed = JSON.parse(savedBlocks).map((b: any) => ({
-        date: new Date(b.date),
-        type: b.type
-      }));
-      setAdminBlocks(parsed);
-    }
+  // 1. Fetch Real-time Allotments from Firestore
+  const bookingsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, "bookings"));
+  }, [firestore]);
+  const { data: bookings, isLoading: isBookingsLoading } = useCollection(bookingsQuery);
 
-    // Mock some statuses for testing
-    setPendingSlots([
-      { date: format(addDays(minBookingDate, 5), "yyyy-MM-dd"), slot: "slot1" },
-      { date: format(addDays(minBookingDate, 10), "yyyy-MM-dd"), slot: "slot2" },
-    ]);
-    setConfirmedSlots([
-      { date: format(addDays(minBookingDate, 7), "yyyy-MM-dd"), slot: "slot1" },
-      { date: format(addDays(minBookingDate, 7), "yyyy-MM-dd"), slot: "slot2" },
-    ]);
-  }, []);
+  // 2. Fetch Real-time Admin Overrides
+  const blockedDatesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, "blockedDates"));
+  }, [firestore]);
+  const { data: blockedDates } = useCollection(blockedDatesQuery);
 
   const getSlotStatus = (slotId: string, targetDate: Date | undefined): SlotStatus => {
-    if (!targetDate) return "available";
+    if (!targetDate || !bookings || !blockedDates) return "available";
     
-    // 1. Check Admin Overrides (Blocks the whole day)
-    const isAdminBlocked = adminBlocks.some(b => isSameDay(b.date, targetDate));
-    if (isAdminBlocked) return "booked";
-
     const dateStr = format(targetDate, "yyyy-MM-dd");
 
-    // 2. Check Confirmed Allotments
-    if (confirmedSlots.some(s => s.date === dateStr && s.slot === slotId)) {
-      return "booked";
-    }
+    // Check Admin Overrides (Blocks the whole day)
+    const isAdminBlocked = blockedDates.some(b => b.blockedDate === dateStr);
+    if (isAdminBlocked) return "booked";
 
-    // 3. Check Pending Proposals
-    if (pendingSlots.some(s => s.date === dateStr && s.slot === slotId)) {
-      return "pending";
-    }
+    // Check Bookings
+    const dailyBookings = bookings.filter(b => b.bookingDate === dateStr && b.slot === slotId);
+    
+    if (dailyBookings.some(b => b.status === "Confirmed" || b.status === "Paid")) return "booked";
+    if (dailyBookings.some(b => b.status === "Pending" || b.status === "Approved")) return "pending";
 
     return "available";
   };
@@ -89,7 +73,7 @@ export default function AvailabilityPage() {
       time: "05:00 PM – 10:00 PM", 
       status: getSlotStatus("slot2", date) 
     }
-  ], [date, adminBlocks, pendingSlots, confirmedSlots]);
+  ], [date, bookings, blockedDates]);
 
   const getStatusBadge = (status: SlotStatus) => {
     switch (status) {
@@ -109,7 +93,7 @@ export default function AvailabilityPage() {
         <div className="mb-8 p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-destructive" />
           <p className="text-sm font-black text-destructive uppercase tracking-tight">
-            Section 1.1: Dates before {minBookingDate.toLocaleDateString()} are locked for official review and advance booking compliance.
+            Section 1.1: Dates before {format(minBookingDate, "PP")} are locked for official review and advance booking compliance.
           </p>
         </div>
 
@@ -138,9 +122,23 @@ export default function AvailabilityPage() {
                     disabled={(date) => isBefore(date, minBookingDate)}
                     className="rounded-xl border-2 border-primary/5 shadow-xl p-4"
                     modifiers={{
-                      booked: (d) => adminBlocks.some(b => isSameDay(b.date, d)) || (confirmedSlots.some(s => s.date === format(d, "yyyy-MM-dd") && s.slot === "slot1") && confirmedSlots.some(s => s.date === format(d, "yyyy-MM-dd") && s.slot === "slot2")),
-                      partial: (d) => confirmedSlots.some(s => s.date === format(d, "yyyy-MM-dd")),
-                      pending: (d) => pendingSlots.some(s => s.date === format(d, "yyyy-MM-dd")),
+                      booked: (d) => {
+                        const dateStr = format(d, "yyyy-MM-dd");
+                        const blocked = blockedDates?.some(b => b.blockedDate === dateStr);
+                        const slot1 = getSlotStatus("slot1", d) === "booked";
+                        const slot2 = getSlotStatus("slot2", d) === "booked";
+                        return blocked || (slot1 && slot2);
+                      },
+                      partial: (d) => {
+                        const slot1 = getSlotStatus("slot1", d) === "booked";
+                        const slot2 = getSlotStatus("slot2", d) === "booked";
+                        return slot1 || slot2;
+                      },
+                      pending: (d) => {
+                        const slot1 = getSlotStatus("slot1", d) === "pending";
+                        const slot2 = getSlotStatus("slot2", d) === "pending";
+                        return slot1 || slot2;
+                      },
                     }}
                     modifiersStyles={{
                       booked: { backgroundColor: 'hsl(var(--destructive))', color: 'white', borderRadius: '4px' },
@@ -208,7 +206,7 @@ export default function AvailabilityPage() {
                           </Button>
                         ) : (
                           <Button className="w-full md:w-auto bg-primary text-white font-black uppercase text-[10px] tracking-widest shadow-lg hover:scale-105 transition-transform" asChild>
-                            <Link href={`/auth/register?date=${date ? format(date, "yyyy-MM-dd") : ""}&slot=${slot.id}`}>
+                            <Link href={`/booking/new?date=${date ? format(date, "yyyy-MM-dd") : ""}&slot=${slot.id}`}>
                               {slot.status === "pending" ? "Submit Competing Proposal" : "Proceed to Booking"}
                             </Link>
                           </Button>

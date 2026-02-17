@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,17 +11,26 @@ import { Switch } from "@/components/ui/switch";
 import { AlertTriangle, Calendar as CalendarIcon, Sparkles, Building2, ShieldCheck, Info, Ban, Clock } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, addDays, isBefore } from "date-fns";
+import { format, addDays, isBefore, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useFirestore, useUser, addDocumentNonBlocking } from "@/firebase";
+import { collection } from "firebase/firestore";
 
 export default function NewBookingPage() {
   const { toast } = useToast();
-  const [date, setDate] = useState<Date>();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const firestore = useFirestore();
+  const { user } = useUser();
+
+  const [date, setDate] = useState<Date | undefined>();
   const [slot, setSlot] = useState("slot1");
+  const [eventName, setEventName] = useState("");
   const [isCollaboration, setIsCollaboration] = useState(false);
   const [standeesCount, setStandeesCount] = useState(0);
   const [agreed, setAgreed] = useState(false);
@@ -28,19 +38,31 @@ export default function NewBookingPage() {
   const minDate = addDays(new Date(), 30);
   const maxDate = addDays(new Date(), 365);
 
-  const baseRent = 25000; // Simulated base rent for calculation
+  useEffect(() => {
+    const paramDate = searchParams.get("date");
+    const paramSlot = searchParams.get("slot");
+    if (paramDate) setDate(parseISO(paramDate));
+    if (paramSlot) setSlot(paramSlot);
+  }, [searchParams]);
+
+  const baseRent = 25000;
   const securityDeposit = 20000;
-  
-  // Section 14.4: Collaboration adds 10% rent surcharge
   const collaborationSurcharge = isCollaboration ? baseRent * 0.10 : 0;
-  // Section 14.5: ₹2,000 per Sponsor Standee
   const standeeFee = standeesCount * 2000;
   const totalRent = baseRent + collaborationSurcharge + standeeFee;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      toast({ title: "Session Error", description: "You must be logged in to submit a proposal.", variant: "destructive" });
+      return;
+    }
     if (!date) {
-      toast({ title: "Section 1.1 Error", description: "Please pick a valid event date at least 30 days prior.", variant: "destructive" });
+      toast({ title: "Section 1.1 Error", description: "Please pick a valid event date.", variant: "destructive" });
+      return;
+    }
+    if (!eventName) {
+      toast({ title: "Incomplete Form", description: "Event name is mandatory.", variant: "destructive" });
       return;
     }
     if (!agreed) {
@@ -48,10 +70,32 @@ export default function NewBookingPage() {
       return;
     }
 
+    const bookingData = {
+      userId: user.uid,
+      auditoriumId: "main-auditorium",
+      bookingDate: format(date, "yyyy-MM-dd"),
+      slot: slot,
+      eventName: eventName,
+      status: "Pending",
+      proposalSubmissionDate: new Date().toISOString(),
+      isCollaboration: isCollaboration,
+      standeesCount: standeesCount,
+      tariffCalculatedAmount: totalRent,
+      securityDepositAmount: securityDeposit,
+      totalPayableAmount: totalRent + securityDeposit,
+      isProhibitedEventConfirmed: agreed,
+      vipChiefGuestExpected: false,
+      expectedGathering: 750
+    };
+
+    addDocumentNonBlocking(collection(firestore, "bookings"), bookingData);
+
     toast({
       title: "Proposal Submitted",
-      description: `Request for ${slot === 'slot1' ? 'Slot 1' : 'Slot 2'} on ${format(date, 'PPP')} has been sent to the Approving Authority.`,
+      description: `Request for ${slot === 'slot1' ? 'Slot 1' : 'Slot 2'} on ${format(date, 'PPP')} has been sent for review.`,
     });
+
+    router.push("/dashboard/requester");
   };
 
   return (
@@ -105,7 +149,7 @@ export default function NewBookingPage() {
 
                   <div className="space-y-4">
                     <Label className="font-black text-xs uppercase tracking-widest text-primary/60">Official Slot (Sec 3.1)</Label>
-                    <RadioGroup defaultValue="slot1" onValueChange={setSlot} className="grid grid-cols-1 gap-4">
+                    <RadioGroup value={slot} onValueChange={setSlot} className="grid grid-cols-1 gap-4">
                       <div className={cn(
                         "flex items-center space-x-3 border-2 p-4 rounded-xl transition-all cursor-pointer",
                         slot === "slot1" ? "border-primary bg-primary/5 shadow-sm" : "border-transparent hover:bg-white"
@@ -139,7 +183,13 @@ export default function NewBookingPage() {
               <CardContent className="p-8 space-y-8">
                 <div className="space-y-3">
                   <Label htmlFor="event-name" className="font-black uppercase text-[10px] tracking-widest text-primary/60">Official Event Declaration (Sec 4.2)</Label>
-                  <Input id="event-name" placeholder="e.g. Annual State Cultural Symposium" className="py-6 rounded-xl border-2 border-primary/5 font-bold" />
+                  <Input 
+                    id="event-name" 
+                    placeholder="e.g. Annual State Cultural Symposium" 
+                    className="py-6 rounded-xl border-2 border-primary/5 font-bold"
+                    value={eventName}
+                    onChange={(e) => setEventName(e.target.value)}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between p-6 bg-accent/5 border-2 border-accent/20 rounded-2xl shadow-sm">
@@ -203,7 +253,7 @@ export default function NewBookingPage() {
 
             <div className="flex justify-end gap-6 pt-4">
               <Button variant="ghost" className="font-bold text-muted-foreground uppercase tracking-widest" asChild>
-                <Link href="/dashboard/requester">Discard Proposal</Link>
+                <Link href="/availability">Discard Proposal</Link>
               </Button>
               <Button 
                 onClick={handleSubmit} 
