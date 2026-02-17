@@ -49,9 +49,9 @@ export default function RequesterDashboard() {
   }, []);
 
   const [bookings, setBookings] = useState([
-    { id: "BR-4092", event: "National Science Symposium", date: "Oct 14, 2026", status: "Approved", action: "Pay Now", docsPending: true },
-    { id: "BR-3981", event: "Quarterly Review Meeting", date: "Nov 02, 2025", status: "Pending", action: "View Status", docsPending: false },
-    { id: "BR-2104", event: "Youth Cultural Fest", date: "Jan 12, 2025", status: "Confirmed", action: "Download Allotment", docsPending: false },
+    { id: "BR-4092", event: "National Science Symposium", slot: "Slot 1 (09:00 AM - 02:00 PM)", date: "Oct 14, 2026", status: "Approved", action: "Pay Now", docsPending: true },
+    { id: "BR-3981", event: "Quarterly Review Meeting", slot: "Slot 2 (05:00 PM - 10:00 PM)", date: "Nov 02, 2025", status: "Pending", action: "View Status", docsPending: false },
+    { id: "BR-2104", event: "Youth Cultural Fest", slot: "Slot 1 (09:00 AM - 02:00 PM)", date: "Jan 12, 2025", status: "Confirmed", action: "Download Allotment", docsPending: false },
   ]);
 
   const cancelBooking = (id: string) => {
@@ -107,7 +107,7 @@ export default function RequesterDashboard() {
                   <TableHeader>
                     <TableRow className="bg-secondary/40 border-b hover:bg-secondary/40">
                       <TableHead className="font-black uppercase text-[10px] tracking-widest py-6 px-10">Reference ID</TableHead>
-                      <TableHead className="font-black uppercase text-[10px] tracking-widest">Event Purpose</TableHead>
+                      <TableHead className="font-black uppercase text-[10px] tracking-widest">Shift / Slot</TableHead>
                       <TableHead className="font-black uppercase text-[10px] tracking-widest">Slot Date</TableHead>
                       <TableHead className="font-black uppercase text-[10px] tracking-widest">Status</TableHead>
                       <TableHead className="text-right font-black uppercase text-[10px] tracking-widest px-10">Actions</TableHead>
@@ -117,7 +117,14 @@ export default function RequesterDashboard() {
                     {bookings.map((booking) => (
                       <TableRow key={booking.id} className="hover:bg-secondary/10 transition-colors">
                         <TableCell className="font-black text-primary py-6 px-10">{booking.id}</TableCell>
-                        <TableCell className="font-bold text-primary/80 uppercase text-xs">{booking.event}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-primary/80 uppercase text-[10px]">{booking.event}</span>
+                            <span className="text-[9px] font-black text-accent uppercase flex items-center gap-1 mt-1">
+                              <Clock className="h-3 w-3" /> {booking.slot}
+                            </span>
+                          </div>
+                        </TableCell>
                         <TableCell className="text-xs font-black text-muted-foreground uppercase">{booking.date}</TableCell>
                         <TableCell>
                           <Badge variant={

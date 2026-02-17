@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { AlertTriangle, Calendar as CalendarIcon, Sparkles, Building2, ShieldCheck, Info, Ban } from "lucide-react";
+import { AlertTriangle, Calendar as CalendarIcon, Sparkles, Building2, ShieldCheck, Info, Ban, Clock } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, addDays, isBefore } from "date-fns";
@@ -50,7 +50,7 @@ export default function NewBookingPage() {
 
     toast({
       title: "Proposal Submitted",
-      description: "Request #INV-NEW-P has been sent to the Approving Authority.",
+      description: `Request for ${slot === 'slot1' ? 'Slot 1' : 'Slot 2'} on ${format(date, 'PPP')} has been sent to the Approving Authority.`,
     });
   };
 
@@ -222,6 +222,16 @@ export default function NewBookingPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-6">
+                <div className="space-y-2 mb-6">
+                  <p className="text-[10px] font-black uppercase text-primary tracking-widest">Selected Shift:</p>
+                  <div className="flex items-center gap-2 p-3 bg-primary/5 border border-primary/10 rounded-xl">
+                    <Clock className="h-4 w-4 text-accent" />
+                    <span className="text-sm font-black uppercase">
+                      {slot === 'slot1' ? 'Slot 1: 09:00 AM - 02:00 PM' : 'Slot 2: 05:00 PM - 10:00 PM'}
+                    </span>
+                  </div>
+                </div>
+
                 <div className="space-y-4 text-sm font-bold">
                   <div className="flex justify-between items-center text-muted-foreground uppercase text-[10px] tracking-widest">
                     <span>Basic Hire Charge:</span>

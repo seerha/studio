@@ -23,7 +23,8 @@ import {
   Trash2,
   Undo2,
   Building2,
-  Stamp
+  Stamp,
+  Clock
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,11 +50,11 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   
   const [allBookings, setAllBookings] = useState([
-    { id: "BR-4092", user: "Dept of Science", category: "Cat A", event: "National Science Symposium", date: "Oct 14, 2026", vip: "Yes", status: "pending" },
-    { id: "BR-4105", user: "Green NGO", category: "Cat B", event: "Eco-Summit 2025", date: "Nov 12, 2025", vip: "No", status: "approved" },
-    { id: "BR-4112", user: "Tech Solutions Ltd", category: "Cat C", event: "Product Launch", date: "Dec 05, 2025", vip: "No", status: "pending" },
-    { id: "BR-4201", user: "Social Welfare Dept", category: "Cat A", event: "Annual Awards Ceremony", date: "Jan 15, 2026", vip: "Yes", status: "approved" },
-    { id: "BR-4205", user: "Medical Association", category: "Cat B", event: "Healthcare Webinar", date: "Feb 10, 2026", vip: "No", status: "pending" },
+    { id: "BR-4092", user: "Dept of Science", category: "Cat A", event: "National Science Symposium", date: "Oct 14, 2026", slot: "Slot 1 (09:00 AM - 02:00 PM)", vip: "Yes", status: "pending" },
+    { id: "BR-4105", user: "Green NGO", category: "Cat B", event: "Eco-Summit 2025", date: "Nov 12, 2025", slot: "Slot 2 (05:00 PM - 10:00 PM)", vip: "No", status: "approved" },
+    { id: "BR-4112", user: "Tech Solutions Ltd", category: "Cat C", event: "Product Launch", date: "Dec 05, 2025", slot: "Slot 1 (09:00 AM - 02:00 PM)", vip: "No", status: "pending" },
+    { id: "BR-4201", user: "Social Welfare Dept", category: "Cat A", event: "Annual Awards Ceremony", date: "Jan 15, 2026", slot: "Slot 2 (05:00 PM - 10:00 PM)", vip: "Yes", status: "approved" },
+    { id: "BR-4205", user: "Medical Association", category: "Cat B", event: "Healthcare Webinar", date: "Feb 10, 2026", slot: "Slot 1 (09:00 AM - 02:00 PM)", vip: "No", status: "pending" },
   ]);
 
   const [blockedDates, setBlockedDates] = useState<{id: string, date: Date, reason: string, type: string}[]>([]);
@@ -301,7 +302,7 @@ export default function AdminDashboard() {
                       <TableRow className="bg-secondary/40 border-b-2 hover:bg-secondary/40">
                         <TableHead className="font-black uppercase text-[10px] tracking-widest py-6 px-10">Reference ID</TableHead>
                         <TableHead className="font-black uppercase text-[10px] tracking-widest">Organization</TableHead>
-                        <TableHead className="font-black uppercase text-[10px] tracking-widest">Event Purpose</TableHead>
+                        <TableHead className="font-black uppercase text-[10px] tracking-widest">Shift / Slot</TableHead>
                         <TableHead className="font-black uppercase text-[10px] tracking-widest">Slot Date</TableHead>
                         <TableHead className="font-black uppercase text-[10px] tracking-widest text-right px-10">Actions</TableHead>
                       </TableRow>
@@ -310,11 +311,18 @@ export default function AdminDashboard() {
                       {pendingRequests.map((req) => (
                         <TableRow key={req.id} className="hover:bg-secondary/20 transition-colors">
                           <TableCell className="font-black text-primary py-6 px-10">{req.id}</TableCell>
-                          <TableCell className="font-bold text-primary/80">{req.user}</TableCell>
+                          <TableCell className="font-bold text-primary/80">
+                            <div className="flex flex-col">
+                              <span>{req.user}</span>
+                              <Badge variant="outline" className="w-fit text-[9px] font-black border-accent text-accent bg-accent/5">{req.category}</Badge>
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <div className="flex flex-col">
                               <span className="font-bold text-sm uppercase">{req.event}</span>
-                              <Badge variant="outline" className="w-fit text-[9px] font-black border-accent text-accent bg-accent/5">{req.category}</Badge>
+                              <span className="text-[10px] font-black text-accent uppercase flex items-center gap-1">
+                                <Clock className="h-3 w-3" /> {req.slot}
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell className="font-bold text-muted-foreground">{req.date}</TableCell>
@@ -348,7 +356,7 @@ export default function AdminDashboard() {
                       <TableRow className="bg-white/50 border-b hover:bg-white/50">
                         <TableHead className="font-black uppercase text-[10px] tracking-widest py-6 px-10">Ref ID</TableHead>
                         <TableHead className="font-black uppercase text-[10px] tracking-widest">Organization</TableHead>
-                        <TableHead className="font-black uppercase text-[10px] tracking-widest">Event Purpose</TableHead>
+                        <TableHead className="font-black uppercase text-[10px] tracking-widest">Shift / Slot</TableHead>
                         <TableHead className="font-black uppercase text-[10px] tracking-widest">Slot Date</TableHead>
                         <TableHead className="font-black uppercase text-[10px] tracking-widest text-right px-10">Actions</TableHead>
                       </TableRow>
@@ -358,7 +366,14 @@ export default function AdminDashboard() {
                         <TableRow key={req.id} className="hover:bg-secondary/10 transition-colors">
                           <TableCell className="font-black text-primary py-6 px-10">{req.id}</TableCell>
                           <TableCell className="font-bold">{req.user}</TableCell>
-                          <TableCell className="font-black text-sm uppercase">{req.event}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-black text-sm uppercase">{req.event}</span>
+                              <span className="text-[10px] font-black text-accent uppercase flex items-center gap-1">
+                                <Clock className="h-3 w-3" /> {req.slot}
+                              </span>
+                            </div>
+                          </TableCell>
                           <TableCell className="font-bold text-muted-foreground">{req.date}</TableCell>
                           <TableCell className="text-right px-10">
                             <AlertDialog>
