@@ -1,178 +1,171 @@
 "use client";
 
 import { Navbar } from "@/components/layout/Navbar";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info, ShieldAlert, CalendarX, FileText, Scale, Volume2, Leaf, Coffee, Camera, ShieldCheck, Clock, Users, ReceiptText, AlertTriangle } from "lucide-react";
+import { 
+  ShieldCheck, 
+  Info, 
+  Scale, 
+  Clock, 
+  AlertTriangle, 
+  FileText, 
+  Users, 
+  Zap, 
+  Ban, 
+  Gavel, 
+  Handshake, 
+  CreditCard 
+} from "lucide-react";
 
 export default function GuidelinesPage() {
+  const sections = [
+    {
+      id: "sec-1",
+      title: "1. Booking, Confirmation & Advance",
+      icon: <FileText className="h-5 w-5" />,
+      content: (
+        <ul className="list-disc pl-5 space-y-2">
+          <li>Booking shall be made in the prescribed format at least 30 days prior to the event date.</li>
+          <li>Bookings are accepted only through this official online portal.</li>
+          <li>Confirmation is subject to receipt of full payment of hire charges, taxes, and security deposit.</li>
+          <li>Maximum advance booking allowed is 12 months.</li>
+          <li>Bulk bookings (more than 10 functions/year) may attract special discounts as notified.</li>
+        </ul>
+      )
+    },
+    {
+      id: "sec-2",
+      title: "2. Payment & Refund Terms",
+      icon: <CreditCard className="h-5 w-5" />,
+      content: (
+        <ul className="list-disc pl-5 space-y-2">
+          <li>Full payment (hire charges + security + utilities) is mandatory for confirmation.</li>
+          <li>Security deposit is refunded within 15 days post-event after adjusting dues/damages.</li>
+          <li>Departmental cancellations for official reasons trigger 100% refund or alternate date.</li>
+          <li>User cancellations are governed by strict forfeiture policies.</li>
+        </ul>
+      )
+    },
+    {
+      id: "sec-3",
+      title: "3. Availability, Slots & Timing",
+      icon: <Clock className="h-5 w-5" />,
+      content: (
+        <ul className="list-disc pl-5 space-y-2">
+          <li><strong>Slot 1:</strong> 9:00 AM to 2:00 PM | <strong>Slot 2:</strong> 5:00 PM to 10:00 PM.</li>
+          <li>Handover: Exactly 2½ hours prior to the scheduled programme.</li>
+          <li>Vacation: Premises must be cleared within 30 minutes after completion.</li>
+          <li>Extension beyond 2 additional hours (if permitted) is charged as a full-day booking.</li>
+        </ul>
+      )
+    },
+    {
+      id: "sec-5",
+      title: "5 & 6. Statutory Permissions & Copyright",
+      icon: <ShieldCheck className="h-5 w-5" />,
+      content: (
+        <ul className="list-disc pl-5 space-y-2">
+          <li>Organiser must obtain Police, Fire, Copyright (IPRS), and Traffic clearances.</li>
+          <li><strong>Deadline:</strong> Copies of all licences must be submitted at least 4 days prior to the event.</li>
+          <li>No programme involving copyright infringement is permitted.</li>
+        </ul>
+      )
+    },
+    {
+      id: "sec-8",
+      title: "8. Maximum Capacity & Safety",
+      icon: <Users className="h-5 w-5" />,
+      content: (
+        <ul className="list-disc pl-5 space-y-2">
+          <li><strong>Strict Capacity:</strong> 750 persons maximum. This shall not be exceeded.</li>
+          <li><strong>Reserved Seats:</strong> 25 seats are reserved for the Department.</li>
+          <li>Invitation cards/passes for these 25 seats must be handed over 2 days prior.</li>
+        </ul>
+      )
+    },
+    {
+      id: "sec-11",
+      title: "11. Prohibitions (Strictly Enforced)",
+      icon: <Ban className="h-5 w-5" />,
+      content: (
+        <ul className="list-disc pl-5 space-y-2 text-destructive font-bold">
+          <li>Open fire, fireworks, inflammable material, and weapons are banned.</li>
+          <li>NO SMOKING, NO ALCOHOL, NO SPITTING.</li>
+          <li>NO EATING INSIDE THE HALL. (Catering strictly prohibited on premises).</li>
+          <li>No loudspeakers allowed outside the building.</li>
+          <li>No standing or dancing on chairs or in front of VIP rows.</li>
+          <li>No bags or briefcases allowed inside the hall.</li>
+        </ul>
+      )
+    },
+    {
+      id: "sec-14",
+      title: "14. General Conditions & Surcharges",
+      icon: <Handshake className="h-5 w-5" />,
+      content: (
+        <ul className="list-disc pl-5 space-y-2">
+          <li>Collaboration/Association: Requires prior approval. Triggers a <strong>10% higher rent</strong>.</li>
+          <li>Sponsor Standees: Max size 6’ × 3’. Additional charge of <strong>₹2,000 per standee</strong>.</li>
+          <li>Misrepresentation: Booking via a third party or misrepresenting organization leads to immediate cancellation and forfeiture.</li>
+        </ul>
+      )
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       <Navbar />
-      <main className="container mx-auto px-4 py-16 max-w-5xl">
-        <div className="mb-12 space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary p-2 rounded-xl shadow-lg">
-              <ShieldCheck className="h-8 w-8 text-white" />
-            </div>
-            <h1 className="text-5xl font-black font-headline text-primary uppercase tracking-tighter">Official Terms & Conditions</h1>
-          </div>
-          <p className="text-xl text-muted-foreground font-bold pl-12 uppercase tracking-tight border-l-4 border-accent">
-            750-Seater Auditorium, Vikas Bhawan Complex, SAS Nagar. <br />
-            <span className="text-sm opacity-60">Dept. of Rural Development & Panchayats, Government of Punjab</span>
-          </p>
+      <main className="container mx-auto px-4 py-12 max-w-5xl">
+        <div className="mb-10 text-center space-y-4">
+          <h1 className="text-4xl md:text-5xl font-black font-headline text-primary uppercase tracking-tighter">Official Terms & Conditions</h1>
+          <p className="text-lg text-muted-foreground font-bold border-y py-2 border-primary/10">Vikas Bhawan Complex Auditorium | Dept. of Rural Development & Panchayats, Punjab</p>
         </div>
 
-        <Alert className="mb-12 border-primary bg-primary/5 p-6 rounded-2xl shadow-sm">
-          <Info className="h-6 w-6 text-primary" />
-          <AlertTitle className="text-primary font-black text-xl uppercase tracking-tighter mb-2">Online Booking Mandate (SRS 1.1)</AlertTitle>
+        <Alert className="mb-10 border-primary bg-primary/5 p-6 rounded-2xl shadow-sm">
+          <AlertTriangle className="h-6 w-6 text-primary" />
+          <AlertTitle className="text-primary font-black uppercase text-lg">Statutory Warning</AlertTitle>
           <AlertDescription className="text-primary/80 font-bold leading-relaxed">
-            Booking is purely on online mode through this authorized portal. Verbal bookings or manual applications are strictly rejected. 
-            Bookings must be initiated between **30 days** and **12 months** in advance.
+            Verbal bookings are NOT accepted. All usage is governed by the Interpretation and Amendments clause (Section 15), where the decision of the Competent Authority is final and binding.
           </AlertDescription>
         </Alert>
 
-        <div className="space-y-16">
-          {/* Statutory Requirements */}
-          <section className="space-y-8">
-            <div className="flex items-center gap-4 border-b-4 border-primary/10 pb-4">
-              <div className="bg-primary text-white p-3 rounded-2xl shadow-xl">
-                <FileText className="h-8 w-8" />
-              </div>
-              <h2 className="text-3xl font-black uppercase text-primary">1. Statutory Compliance & Licensing</h2>
-            </div>
-            <Card className="border-none shadow-2xl bg-white rounded-3xl overflow-hidden">
-              <CardContent className="p-10">
-                <div className="mb-8 p-5 bg-destructive/5 border-l-8 border-destructive rounded-r-2xl">
-                  <p className="text-sm font-black text-destructive uppercase tracking-widest">Mandatory Document Deadlines</p>
-                  <p className="text-xs font-bold text-destructive/80 mt-1">Organizers MUST upload valid licenses at least 4 days prior to the event.</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {[
-                    { title: "Police Permission", desc: "Approved letter from local SSP office (SAS Nagar)." },
-                    { title: "Fire Safety Audit", desc: "Completed checklist as per Municipal standards." },
-                    { title: "Traffic Police NOC", desc: "Required for gatherings exceeding 500 persons." },
-                    { title: "Copyright (IPRS)", desc: "Mandatory for music/performance involving intellectual property." },
-                    { title: "Excise Permit", desc: "Strictly for permitted Govt. events only. No private consumption." },
-                    { title: "Performance License", desc: "Required for commercial/ticketed theatrical plays." }
-                  ].map((doc, i) => (
-                    <div key={i} className="flex gap-4 p-5 border-2 border-primary/5 rounded-2xl bg-secondary/20">
-                      <ShieldCheck className="h-6 w-6 text-primary shrink-0" />
-                      <div className="space-y-1">
-                        <p className="text-sm font-black text-primary uppercase">{doc.title}</p>
-                        <p className="text-xs font-bold text-muted-foreground leading-relaxed">{doc.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* Strict Prohibitions */}
-          <section className="space-y-8">
-            <div className="flex items-center gap-4 border-b-4 border-primary/10 pb-4">
-              <div className="bg-primary text-white p-3 rounded-2xl shadow-xl">
-                <ShieldAlert className="h-8 w-8" />
-              </div>
-              <h2 className="text-3xl font-black uppercase text-primary">2. Operational Prohibitions</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {[
-                {
-                  icon: <CalendarX className="h-6 w-6 text-destructive" />,
-                  title: "Strict No Subletting",
-                  desc: "Booking is non-transferable. Subletting or misrepresentation of organization will result in immediate disqualification and total fee forfeiture."
-                },
-                {
-                  icon: <Volume2 className="h-6 w-6 text-destructive" />,
-                  title: "Noise Control Protocols",
-                  desc: "Loudspeakers are prohibited outside the building. Interior sound levels must strictly stay below 75dB as per venue standards."
-                },
-                {
-                  icon: <Coffee className="h-6 w-6 text-destructive" />,
-                  title: "No Catering / Food / Alcohol",
-                  desc: "Strictly NO eating inside the main hall. Consumption of alcohol, tobacco, or smoking is a legal offense on premises."
-                },
-                {
-                  icon: <Leaf className="h-6 w-6 text-destructive" />,
-                  title: "Zero Physical Alteration",
-                  desc: "No pasting of posters on walls, stage, or upholstery. Use of nails, adhesives, or structural modifications is forbidden."
-                }
-              ].map((item, i) => (
-                <Card key={i} className="border-none shadow-xl bg-destructive/5 rounded-3xl overflow-hidden hover:scale-105 transition-transform">
-                  <CardHeader className="pb-4 pt-8">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-white p-2 rounded-xl shadow-sm">{item.icon}</div>
-                      <CardTitle className="text-lg font-black uppercase text-primary tracking-tighter">{item.title}</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="text-xs font-bold text-muted-foreground leading-relaxed px-8 pb-8">
-                    {item.desc}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-
-          {/* Policy & Cancellations */}
-          <section className="space-y-8">
-            <div className="flex items-center gap-4 border-b-4 border-primary/10 pb-4">
-              <div className="bg-primary text-white p-3 rounded-2xl shadow-xl">
-                <Scale className="h-8 w-8" />
-              </div>
-              <h2 className="text-3xl font-black uppercase text-primary">3. Policy, Slots & Penalties</h2>
-            </div>
+        <div className="grid grid-cols-1 gap-12">
+          <section className="space-y-6">
+            <h2 className="text-2xl font-black uppercase text-primary border-l-4 border-accent pl-4">Key Operational Mandates</h2>
             <Accordion type="single" collapsible className="w-full space-y-4">
-              <AccordionItem value="item-1" className="border-2 border-primary/10 rounded-2xl px-6 bg-white shadow-sm overflow-hidden">
-                <AccordionTrigger className="font-black text-primary uppercase text-sm hover:no-underline py-6">
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-5 w-5 text-accent" />
-                    Slot Timelines & Handover (SRS 2.0)
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground font-bold leading-relaxed pb-8 pl-8 text-xs uppercase tracking-tight">
-                  Slot 1: 9:00 AM - 2:00 PM (Handover at 6:30 AM). <br />
-                  Slot 2: 5:00 PM - 10:00 PM (Handover at 2:30 PM). <br />
-                  Premise must be vacated strictly 30 mins after slot end for preparation. Extension beyond 2 hours results in automatic full-day rent charge.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-2" className="border-2 border-primary/10 rounded-2xl px-6 bg-white shadow-sm overflow-hidden">
-                <AccordionTrigger className="font-black text-primary uppercase text-sm hover:no-underline py-6">
-                  <div className="flex items-center gap-3">
-                    <ReceiptText className="h-5 w-5 text-accent" />
-                    Forfeiture & Refund Policy
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground font-bold leading-relaxed pb-8 pl-8 text-xs uppercase tracking-tight">
-                  <span className="text-destructive font-black underline">User Cancellation:</span> All hire charges and security deposit stand 100% forfeited. <br />
-                  <span className="text-green-700 font-black underline">Departmental Cancellation:</span> If cancelled for official state exigencies, 100% refund is issued or alternate dates provided.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-3" className="border-2 border-primary/10 rounded-2xl px-6 bg-white shadow-sm overflow-hidden">
-                <AccordionTrigger className="font-black text-primary uppercase text-sm hover:no-underline py-6">
-                  <div className="flex items-center gap-3">
-                    <Users className="h-5 w-5 text-accent" />
-                    Seating Capacity & Reservation
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground font-bold leading-relaxed pb-8 pl-8 text-xs uppercase tracking-tight">
-                  Total capacity is 750. Organizers must NOT issue more than 725 passes. 25 specific seats (marked) are reserved for Departmental Authorities. Complimentary tickets must be handed over 2 days prior to event.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-4" className="border-2 border-primary/10 rounded-2xl px-6 bg-white shadow-sm overflow-hidden">
-                <AccordionTrigger className="font-black text-primary uppercase text-sm hover:no-underline py-6">
-                  <div className="flex items-center gap-3">
-                    <AlertTriangle className="h-5 w-5 text-accent" />
-                    Collaboration & Standee Penalties
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground font-bold leading-relaxed pb-8 pl-8 text-xs uppercase tracking-tight">
-                  Collaborations with other entities trigger a mandatory 10% rent surcharge. Sponsor standees (max 6&apos;x3&apos;) are charged at ₹2,000 per unit. Misrepresentation of these facts leads to immediate booking cancellation.
-                </AccordionContent>
-              </AccordionItem>
+              {sections.map((sec) => (
+                <AccordionItem key={sec.id} value={sec.id} className="border-2 border-primary/5 rounded-2xl px-6 bg-white shadow-sm overflow-hidden">
+                  <AccordionTrigger className="hover:no-underline py-6">
+                    <div className="flex items-center gap-4 text-primary font-black uppercase text-sm tracking-tight text-left">
+                      <div className="bg-secondary p-2 rounded-xl text-primary">{sec.icon}</div>
+                      {sec.title}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-8 pl-12 text-muted-foreground font-bold text-xs uppercase tracking-tight leading-relaxed">
+                    {sec.content}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
             </Accordion>
+          </section>
+
+          <section className="bg-secondary/30 p-8 rounded-3xl border-2 border-dashed border-primary/10">
+            <div className="flex items-center gap-3 mb-6">
+              <Gavel className="h-8 w-8 text-primary" />
+              <h3 className="text-2xl font-black uppercase text-primary">Interpretation & Liability</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-[11px] font-bold uppercase tracking-tight text-muted-foreground/80 leading-relaxed">
+              <div className="space-y-4">
+                <p>• The Organiser shall indemnify the Department against all claims, damages, and liabilities arising from the event.</p>
+                <p>• The Department shall not be liable for any injury or loss of property belonging to organizers or audience.</p>
+              </div>
+              <div className="space-y-4">
+                <p>• Misrepresentation of booking purpose results in 100% forfeiture of rent and security deposit.</p>
+                <p>• The Department reserves the right to relax or amend any condition at its discretion for official exigencies.</p>
+              </div>
+            </div>
           </section>
         </div>
       </main>

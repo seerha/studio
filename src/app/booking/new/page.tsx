@@ -5,9 +5,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { AlertTriangle, Calendar as CalendarIcon, Sparkles, Building2, ShieldCheck, Info } from "lucide-react";
+import { AlertTriangle, Calendar as CalendarIcon, Sparkles, Building2, ShieldCheck, Info, Ban } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, addDays, isBefore } from "date-fns";
@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 export default function NewBookingPage() {
   const { toast } = useToast();
@@ -27,23 +28,23 @@ export default function NewBookingPage() {
   const minDate = addDays(new Date(), 30);
   const maxDate = addDays(new Date(), 365);
 
-  const baseRent = 25000;
+  const baseRent = 25000; // Simulated base rent for calculation
   const securityDeposit = 20000;
   
-  // SRS Calculation: Collaboration adds 10% rent surcharge
+  // Section 14.4: Collaboration adds 10% rent surcharge
   const collaborationSurcharge = isCollaboration ? baseRent * 0.10 : 0;
-  // SRS Calculation: ₹2,000 per Sponsor Standee
+  // Section 14.5: ₹2,000 per Sponsor Standee
   const standeeFee = standeesCount * 2000;
   const totalRent = baseRent + collaborationSurcharge + standeeFee;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!date) {
-      toast({ title: "Selection Missing", description: "Please pick a valid event date.", variant: "destructive" });
+      toast({ title: "Section 1.1 Error", description: "Please pick a valid event date at least 30 days prior.", variant: "destructive" });
       return;
     }
     if (!agreed) {
-      toast({ title: "Agreement Required", description: "You must accept the statutory declarations.", variant: "destructive" });
+      toast({ title: "Compliance Error", description: "You must accept the official Terms & Conditions.", variant: "destructive" });
       return;
     }
 
@@ -59,7 +60,7 @@ export default function NewBookingPage() {
       <main className="container mx-auto px-4 py-10 max-w-6xl">
         <div className="mb-10 space-y-2">
           <h1 className="text-4xl font-black font-headline text-primary uppercase tracking-tight">New Allotment Proposal</h1>
-          <p className="text-muted-foreground font-bold flex items-center gap-2">
+          <p className="text-muted-foreground font-bold flex items-center gap-2 uppercase text-[10px] tracking-widest">
             <Building2 className="h-4 w-4" /> Vikas Bhawan Complex Auditorium, SAS Nagar
           </p>
         </div>
@@ -69,14 +70,14 @@ export default function NewBookingPage() {
             <Card className="border-none shadow-2xl rounded-2xl overflow-hidden">
               <CardHeader className="bg-primary text-white py-8">
                 <CardTitle className="text-2xl font-black uppercase tracking-tighter">1. Schedule & Slot Selection</CardTitle>
-                <CardDescription className="text-primary-foreground/70 font-medium italic">
-                  SRS Constraint: Bookings locked between 30 days and 12 months.
+                <CardDescription className="text-primary-foreground/70 font-bold uppercase text-[10px]">
+                  Section 3.1: Strict slot timing selection mandatory.
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-4">
-                    <Label className="font-black text-xs uppercase tracking-widest text-primary/60">Target Date</Label>
+                    <Label className="font-black text-xs uppercase tracking-widest text-primary/60">Target Date (Sec 1.1)</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
@@ -103,7 +104,7 @@ export default function NewBookingPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <Label className="font-black text-xs uppercase tracking-widest text-primary/60">Official Slot (SRS Mandate)</Label>
+                    <Label className="font-black text-xs uppercase tracking-widest text-primary/60">Official Slot (Sec 3.1)</Label>
                     <RadioGroup defaultValue="slot1" onValueChange={setSlot} className="grid grid-cols-1 gap-4">
                       <div className={cn(
                         "flex items-center space-x-3 border-2 p-4 rounded-xl transition-all cursor-pointer",
@@ -112,7 +113,7 @@ export default function NewBookingPage() {
                         <RadioGroupItem value="slot1" id="slot1" />
                         <Label htmlFor="slot1" className="flex-1 cursor-pointer">
                           <span className="font-black block text-sm">SLOT 1: MORNING / NOON</span>
-                          <span className="text-[10px] text-muted-foreground font-bold">09:00 AM – 02:00 PM</span>
+                          <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">09:00 AM – 02:00 PM</span>
                         </Label>
                       </div>
                       <div className={cn(
@@ -122,7 +123,7 @@ export default function NewBookingPage() {
                         <RadioGroupItem value="slot2" id="slot2" />
                         <Label htmlFor="slot2" className="flex-1 cursor-pointer">
                           <span className="font-black block text-sm">SLOT 2: EVENING</span>
-                          <span className="text-[10px] text-muted-foreground font-bold">05:00 PM – 10:00 PM</span>
+                          <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">05:00 PM – 10:00 PM</span>
                         </Label>
                       </div>
                     </RadioGroup>
@@ -133,11 +134,11 @@ export default function NewBookingPage() {
 
             <Card className="border-none shadow-2xl rounded-2xl overflow-hidden">
               <CardHeader className="bg-secondary border-b-2 py-6">
-                <CardTitle className="text-xl font-black uppercase text-primary">2. Event Configuration & Surcharges</CardTitle>
+                <CardTitle className="text-xl font-black uppercase text-primary">2. Official Surcharges (Sec 14)</CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
                 <div className="space-y-3">
-                  <Label htmlFor="event-name" className="font-black uppercase text-[10px] tracking-widest text-primary/60">Official Event Name</Label>
+                  <Label htmlFor="event-name" className="font-black uppercase text-[10px] tracking-widest text-primary/60">Official Event Declaration (Sec 4.2)</Label>
                   <Input id="event-name" placeholder="e.g. Annual State Cultural Symposium" className="py-6 rounded-xl border-2 border-primary/5 font-bold" />
                 </div>
 
@@ -145,17 +146,17 @@ export default function NewBookingPage() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <Building2 className="h-5 w-5 text-primary" />
-                      <Label className="font-black text-sm uppercase">Organizational Collaboration</Label>
+                      <Label className="font-black text-sm uppercase">Collaboration / Association</Label>
                     </div>
-                    <p className="text-[10px] text-primary/60 font-bold uppercase tracking-tight italic">SRS Rule: Collaborations trigger a 10% rent surcharge.</p>
+                    <p className="text-[10px] text-primary/60 font-bold uppercase tracking-tight italic">Section 14.4: Higher rent (+10%) applied for joint shows.</p>
                   </div>
                   <Switch checked={isCollaboration} onCheckedChange={setIsCollaboration} className="data-[state=checked]:bg-primary" />
                 </div>
 
                 <div className="space-y-6 pt-4 border-t border-dashed">
                   <div className="flex items-center justify-between">
-                    <Label className="font-black text-sm uppercase">Sponsor Standees (Max 6&apos;x3&apos;)</Label>
-                    <Badge variant="outline" className="border-accent text-accent bg-accent/5 font-black">₹2,000 / STANDEE</Badge>
+                    <Label className="font-black text-sm uppercase">Sponsor Standees (Section 14.5)</Label>
+                    <Badge variant="outline" className="border-accent text-accent bg-accent/5 font-black">₹ 2,000 / UNIT</Badge>
                   </div>
                   <div className="flex items-center gap-6">
                     <Input 
@@ -167,7 +168,7 @@ export default function NewBookingPage() {
                     />
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground font-bold italic">Max size: 6 feet height x 3 feet width.</p>
-                      <p className="text-[10px] text-destructive uppercase font-black">Strict Enforcement: Oversized standees will be removed without notice.</p>
+                      <p className="text-[10px] text-destructive uppercase font-black">Section 14.5: Additional charges for name/logo display.</p>
                     </div>
                   </div>
                 </div>
@@ -176,10 +177,10 @@ export default function NewBookingPage() {
 
             <div className="p-6 bg-destructive/10 border-2 border-destructive/20 rounded-2xl flex gap-4 shadow-sm">
               <div className="bg-destructive p-1 rounded-full h-fit mt-1">
-                <AlertTriangle className="h-5 w-5 text-white" />
+                <Ban className="h-5 w-5 text-white" />
               </div>
               <div className="space-y-4 flex-1">
-                <p className="text-xs font-black text-destructive underline uppercase tracking-widest">Statutory Agreement & Compliance</p>
+                <p className="text-xs font-black text-destructive underline uppercase tracking-widest">Statutory Compliance (Sections 8, 11, 14)</p>
                 <div className="flex items-start gap-3">
                   <input 
                     type="checkbox" 
@@ -189,7 +190,12 @@ export default function NewBookingPage() {
                     onChange={(e) => setAgreed(e.target.checked)}
                   />
                   <Label htmlFor="declare" className="text-[11px] text-primary/80 font-bold leading-relaxed uppercase">
-                    I solemnly declare to: 1. Not exceed 750 persons capacity. 2. Reserve 25 specific seats for the Department. 3. Not use fire/weapons on stage. 4. Vacate premises within 30 mins of slot end. I understand misrepresentation leads to 100% forfeiture.
+                    I solemnly agree to strictly follow all 15 sections of the Terms & Conditions, including: 
+                    1. Max 750 capacity (Sec 8.1). 
+                    2. Reserving 25 seats for Department (Sec 8.2). 
+                    3. No food inside hall (Sec 11.2). 
+                    4. Vacating within 30 mins of program (Sec 3.4). 
+                    I understand misrepresentation leads to immediate forfeiture (Sec 13.3).
                   </Label>
                 </div>
               </div>
@@ -223,14 +229,14 @@ export default function NewBookingPage() {
                   </div>
                   {isCollaboration && (
                     <div className="flex justify-between items-center text-destructive">
-                      <span className="uppercase text-[10px] tracking-widest">Collaboration (+10%):</span>
-                      <span className="font-mono font-black">+ ₹ {collaborationSurcharge.toLocaleString()}</span>
+                      <span className="uppercase text-[10px] tracking-widest">Collaboration (Sec 14.4):</span>
+                      <span className="font-mono font-black text-xs">+ ₹ {collaborationSurcharge.toLocaleString()}</span>
                     </div>
                   )}
                   {standeesCount > 0 && (
                     <div className="flex justify-between items-center text-destructive">
                       <span className="uppercase text-[10px] tracking-widest">Sponsor Displays ({standeesCount}):</span>
-                      <span className="font-mono font-black">+ ₹ {standeeFee.toLocaleString()}</span>
+                      <span className="font-mono font-black text-xs">+ ₹ {standeeFee.toLocaleString()}</span>
                     </div>
                   )}
                   <div className="pt-6 border-t-2 flex justify-between items-center font-black text-2xl text-primary uppercase">
@@ -241,31 +247,31 @@ export default function NewBookingPage() {
 
                 <div className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 space-y-2">
                   <div className="flex justify-between items-center font-black text-xs uppercase text-primary">
-                    <span>Security Deposit:</span>
+                    <span>Security Deposit (Sec 2.2):</span>
                     <span className="font-mono">₹ {securityDeposit.toLocaleString()}</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground font-bold italic leading-relaxed">
-                    Refundable within 15 days post-event subject to Manager&apos;s Clearance Report.
+                  <p className="text-[10px] text-muted-foreground font-bold italic leading-relaxed uppercase">
+                    Refundable within 15 days post-event subject to Manager&apos;s Clearance.
                   </p>
                 </div>
                 
                 <div className="pt-6 space-y-4">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-accent" />
-                    <p className="font-black text-[10px] uppercase text-primary tracking-widest">Compliance Deadlines (SRS):</p>
+                    <p className="font-black text-[10px] uppercase text-primary tracking-widest">Official Timelines:</p>
                   </div>
                   <ul className="text-[10px] space-y-3 text-muted-foreground font-black uppercase italic">
                     <li className="flex items-start gap-2">
                       <div className="h-1 w-1 bg-accent rounded-full mt-1.5" />
-                      <span>Payment: Due immediately upon approval</span>
+                      <span>Licences: Submit 4 days prior (Sec 6.3)</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <div className="h-1 w-1 bg-accent rounded-full mt-1.5" />
-                      <span>Licenses: Upload 4 days prior (Mandatory)</span>
+                      <span>Handover: Exactly 2.5 hours prior (Sec 3.3)</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <div className="h-1 w-1 bg-accent rounded-full mt-1.5" />
-                      <span>Handover: Exactly 2.5 hours before slot</span>
+                      <span>Vacate: Strictly 30 mins post-event (Sec 3.4)</span>
                     </li>
                   </ul>
                 </div>
@@ -277,9 +283,9 @@ export default function NewBookingPage() {
                 <Info className="h-5 w-5 text-primary" />
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase text-primary">GST & Taxes</p>
-                <p className="text-[9px] text-muted-foreground font-bold leading-tight">
-                  Statutory GST (18%) will be calculated on the final invoice after approval.
+                <p className="text-[10px] font-black uppercase text-primary">Section 2.1 Mandate</p>
+                <p className="text-[9px] text-muted-foreground font-bold leading-tight uppercase">
+                  Full payment must be made prior to confirmation. Verbal bookings are void.
                 </p>
               </div>
             </div>

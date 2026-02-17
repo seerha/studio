@@ -2,9 +2,19 @@
 
 import { Navbar } from "@/components/layout/Navbar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ReceiptText, Clock, Info, ShieldCheck, Landmark, Building2, User } from "lucide-react";
+import { 
+  ReceiptText, 
+  Handshake, 
+  Stamp, 
+  Info, 
+  ShieldCheck, 
+  Landmark, 
+  Building2, 
+  User,
+  AlertTriangle
+} from "lucide-react";
 
 export default function TariffPage() {
   const tariffs = [
@@ -13,7 +23,7 @@ export default function TariffPage() {
       entity: "Govt. Departments / PSUs",
       rent: "₹ 5,000",
       deposit: "₹ 10,000",
-      notes: "Official maintenance fee only",
+      notes: "Subject to Section 4.1 Permitted Use",
       icon: <Landmark className="h-5 w-5" />
     },
     {
@@ -21,7 +31,7 @@ export default function TariffPage() {
       entity: "Registered NGOs / Schools",
       rent: "₹ 15,000",
       deposit: "₹ 20,000",
-      notes: "Subsidized cultural rate",
+      notes: "80G/12A Verification Mandatory",
       icon: <Building2 className="h-5 w-5" />
     },
     {
@@ -29,17 +39,16 @@ export default function TariffPage() {
       entity: "Private / Corporate",
       rent: "₹ 50,000",
       deposit: "₹ 50,000",
-      notes: "Commercial market rate",
+      notes: "Commercial/Professional Shows",
       icon: <User className="h-5 w-5" />
     }
   ];
 
-  const utilities = [
-    { item: "Central Air Conditioning", rate: "₹ 2,000 / Hour", sub: "Mandatory for Slot 2" },
-    { item: "Collaboration Surcharge", rate: "+ 10% Rent", sub: "Joint events only" },
-    { item: "Sponsor Standees (6'x3')", rate: "₹ 2,000 / Unit", sub: "Max 10 units" },
-    { item: "Extended Hours", rate: "₹ 5,000 / Hour", sub: "Max 2 hours extension" },
-    { item: "Cleaning & Vacuuming", rate: "₹ 2,500", sub: "Mandatory post-event" }
+  const officialSurcharges = [
+    { item: "Collaboration / Association", rate: "+ 10% Rent", sub: "Section 14.4: Higher rent applied for joint shows" },
+    { item: "Sponsor Displays (Standees)", rate: "₹ 2,000 / Unit", sub: "Section 14.5: Per standee (Max 6'x3')" },
+    { item: "Extended Hours", rate: "₹ 5,000 / Hour", sub: "Section 3.5: Max 2 hours; thereafter full-day charge" },
+    { item: "Power Backup (DG Set)", rate: "As Notified", sub: "Section 10.4: Chargeable at prevailing rates" }
   ];
 
   return (
@@ -50,8 +59,8 @@ export default function TariffPage() {
           <div className="bg-primary text-white w-20 h-20 rounded-3xl flex items-center justify-center mx-auto shadow-2xl mb-6">
             <ReceiptText className="h-10 w-10" />
           </div>
-          <h1 className="text-5xl font-black font-headline text-primary uppercase tracking-tighter">Approved Official Tariff</h1>
-          <p className="text-xl text-muted-foreground font-bold uppercase tracking-tight max-w-2xl mx-auto">Standardized rental rates for Vikas Bhawan Complex Auditorium (SAS Nagar).</p>
+          <h1 className="text-5xl font-black font-headline text-primary uppercase tracking-tighter">Official Tariff Card</h1>
+          <p className="text-xl text-muted-foreground font-bold uppercase tracking-tight max-w-2xl mx-auto">Vikas Bhawan Complex Auditorium | Approved 2026-27 Rates</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -60,7 +69,7 @@ export default function TariffPage() {
               <CardHeader className="bg-primary text-white py-10 px-10">
                 <div className="flex items-center gap-4">
                   <ShieldCheck className="h-8 w-8 text-accent" />
-                  <CardTitle className="text-2xl font-black uppercase">Slot Hire Charges (SRS 2026)</CardTitle>
+                  <CardTitle className="text-2xl font-black uppercase">Standard Slot Hire (SRS 2026)</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -98,19 +107,19 @@ export default function TariffPage() {
             <Card className="border-none shadow-2xl rounded-3xl overflow-hidden bg-white border-t-8 border-accent">
               <CardHeader className="bg-secondary/40 border-b-2 py-8 px-10">
                 <div className="flex items-center gap-3">
-                  <Clock className="h-8 w-8 text-primary" />
-                  <CardTitle className="text-xl font-black uppercase text-primary">Utilities & Surcharges</CardTitle>
+                  <Stamp className="h-8 w-8 text-primary" />
+                  <CardTitle className="text-xl font-black uppercase text-primary">Statutory Surcharges (Mandatory)</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="p-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {utilities.map((u, i) => (
+                  {officialSurcharges.map((u, i) => (
                     <div key={i} className="flex justify-between items-center p-6 border-2 border-primary/5 rounded-2xl bg-white shadow-sm hover:border-accent transition-colors group">
-                      <div className="flex flex-col">
+                      <div className="flex flex-col max-w-[60%]">
                         <span className="text-xs font-black uppercase text-primary tracking-tight group-hover:text-accent transition-colors">{u.item}</span>
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase">{u.sub}</span>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase leading-tight mt-1">{u.sub}</span>
                       </div>
-                      <span className="text-sm font-black text-primary font-mono bg-secondary px-4 py-2 rounded-xl">{u.rate}</span>
+                      <span className="text-sm font-black text-primary font-mono bg-secondary px-4 py-2 rounded-xl shrink-0">{u.rate}</span>
                     </div>
                   ))}
                 </div>
@@ -123,33 +132,27 @@ export default function TariffPage() {
               <CardHeader className="py-8 px-8">
                 <CardTitle className="text-xl font-black flex items-center gap-3 uppercase tracking-tight">
                   <Info className="h-6 w-6 text-accent" />
-                  Financial Mandates
+                  Financial Clauses
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-8 pb-10 space-y-6 text-[11px] font-bold uppercase tracking-tight opacity-90 leading-relaxed">
-                <p className="p-4 bg-white/10 rounded-2xl border border-white/20">
-                  • Statutory GST (18%) will be added to the final consolidated invoice.
-                </p>
-                <p>• Daily rental period is strictly per slot: 09:00 AM – 02:00 PM or 05:00 PM – 10:00 PM.</p>
-                <p>• 100% Hire Charges & Deposit must be paid to confirm the allotment slot.</p>
-                <p>• Misrepresentation of organizational category will result in immediate cancellation without refund.</p>
-                <p className="text-accent font-black">
-                  • Security deposit refunds are processed within 15 working days post-event clearance.
-                </p>
+                <div className="p-4 bg-white/10 rounded-2xl border border-white/20">
+                  <p className="mb-2 text-accent">Section 2.2: Security Deposit</p>
+                  <p>Refunded within 15 days after event, subject to damage assessment and utility dues.</p>
+                </div>
+                <div className="p-4 bg-white/10 rounded-2xl border border-white/20">
+                  <p className="mb-2 text-accent">Section 13.2: Forfeiture</p>
+                  <p>User cancellation or postponement leads to 100% forfeiture of rent and security deposit.</p>
+                </div>
+                <p>• GST (18%) added to final invoice as per Govt rules.</p>
+                <p>• Bulk Discount: Flagged for &gt;10 functions/year (Section 1.5).</p>
               </CardContent>
             </Card>
 
-            <div className="p-8 rounded-3xl bg-white border-2 border-primary/5 shadow-xl space-y-4">
-              <h4 className="font-black text-primary uppercase text-sm tracking-widest border-b pb-2">Subsidy Audit</h4>
-              <p className="text-[10px] text-muted-foreground font-bold leading-relaxed uppercase">
-                Category B applicants MUST upload valid 80G/12A certificates and evidence of educational impact. Failure to provide documentation triggers automatic upgrade to Category C rates.
-              </p>
-            </div>
-
             <div className="p-6 bg-destructive/10 border-2 border-destructive/20 rounded-2xl flex gap-4 shadow-inner">
-              <Info className="h-6 w-6 text-destructive shrink-0" />
+              <AlertTriangle className="h-6 w-6 text-destructive shrink-0" />
               <p className="text-[9px] font-black text-destructive uppercase leading-tight">
-                NOTICE: Rates are revised annually by the Allotment Committee. Current rates valid until March 2027.
+                IMPORTANT: Section 14.6: If program is organized by a party other than the applicant, booking is cancelled with total forfeiture.
               </p>
             </div>
           </div>
