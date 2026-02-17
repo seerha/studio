@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -53,7 +52,6 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const firestore = useFirestore();
   
-  // Real-time Collections
   const bookingsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, "bookings"));
@@ -79,12 +77,12 @@ export default function AdminDashboard() {
     
     toast({
       title: "Status Updated",
-      description: `Booking ${bookingId} has been ${newStatus.toLowerCase()}.`,
+      description: `Booking ${bookingId.slice(0,6)} has been ${newStatus.toLowerCase()}.`,
     });
   };
 
   const handleQuickRevocation = () => {
-    const booking = bookings?.find(b => b.id === revocationId);
+    const booking = bookings?.find(b => b.id.includes(revocationId) || b.id === revocationId);
     if (!booking) {
       toast({ title: "Reference Not Found", description: "The provided ID does not match any record.", variant: "destructive" });
       return;
@@ -104,7 +102,7 @@ export default function AdminDashboard() {
       reason: overrideReason,
       blockingType: overrideType,
       creationDate: new Date().toISOString(),
-      adminId: "admin-1", // Mock admin ID
+      adminId: "admin-1",
       auditoriumId: "main-auditorium"
     };
 
@@ -141,29 +139,25 @@ export default function AdminDashboard() {
               </div>
               <h1 className="text-4xl font-black font-headline text-primary uppercase tracking-tighter">Authority Control Center</h1>
             </div>
-            <p className="text-muted-foreground font-bold uppercase text-xs tracking-widest pl-12 flex items-center gap-2">
+            <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest pl-12 flex items-center gap-2">
               <ShieldAlert className="h-3 w-3" /> Level-II Approving Authority | Dept. of Rural Development, Punjab
             </p>
           </div>
           <div className="flex gap-4">
-            <Button variant="outline" className="border-primary text-primary font-bold px-6 py-6 shadow-sm hover:bg-primary hover:text-white" onClick={() => toast({ title: "Report Generation Started" })}>
-              <BarChart4 className="mr-2 h-4 w-4" /> Export SRS Reports
-            </Button>
-            
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" className="bg-destructive shadow-2xl hover:bg-destructive/90 font-black px-8 py-6 rounded-xl uppercase tracking-widest">
-                  <ShieldAlert className="mr-2 h-5 w-5" /> Emergency Override
+                  <ShieldAlert className="mr-2 h-5 w-5" /> State Override
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent className="max-w-md rounded-2xl border-none shadow-2xl">
                 <AlertDialogHeader>
                   <AlertDialogTitle className="flex items-center gap-2 text-destructive text-2xl font-black uppercase">
                     <ShieldAlert className="h-7 w-7" />
-                    State Exigency Override
+                    State Exigency
                   </AlertDialogTitle>
-                  <AlertDialogDescription className="text-foreground/80 font-medium leading-relaxed">
-                    CRITICAL: This action will instantly block the auditorium. Existing bookings for this slot will be auto-cancelled.
+                  <AlertDialogDescription className="text-foreground/80 font-bold leading-relaxed uppercase text-[10px]">
+                    CRITICAL: This will block the entire day. Existing bookings will be impacted (Section 13.1).
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 
@@ -188,21 +182,9 @@ export default function AdminDashboard() {
                     </Popover>
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Classification</Label>
-                    <Select value={overrideType} onValueChange={setOverrideType}>
-                      <SelectTrigger className="py-7 rounded-xl border-2 font-bold"><SelectValue placeholder="Select type" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Emergency">National Emergency</SelectItem>
-                        <SelectItem value="State">State Government Function</SelectItem>
-                        <SelectItem value="Security">VIP / Security Movement</SelectItem>
-                        <SelectItem value="Maintenance">Urgent Maintenance</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Override Specifics</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground">Override Reason</Label>
                     <Input 
-                      placeholder="e.g. CM Visit / G20 Preparation" 
+                      placeholder="e.g. CM Visit / G20 Prep" 
                       className="py-7 rounded-xl border-2 font-bold"
                       value={overrideReason} 
                       onChange={(e) => setOverrideReason(e.target.value)} 
@@ -226,7 +208,7 @@ export default function AdminDashboard() {
             { label: "Total Proposals", value: bookings?.length.toString() || "0", icon: <Users className="text-blue-500" />, sub: "All time" },
             { label: "Pending Review", value: pendingRequests.length.toString(), icon: <Stamp className="text-accent" />, sub: "Awaiting Review" },
             { label: "Active Allotments", value: approvedBookings.length.toString(), icon: <FileCheck className="text-green-500" />, sub: "Confirmed Slots" },
-            { label: "Admin Blocks", value: blockedDates?.length.toString() || "0", icon: <ShieldAlert className="text-destructive" />, sub: "State Overrides" },
+            { label: "Admin Blocks", value: blockedDates?.length.toString() || "0", icon: <ShieldAlert className="text-destructive" />, sub: "Overrides" },
           ].map((stat, i) => (
             <Card key={i} className="border-none shadow-xl bg-white rounded-2xl overflow-hidden hover:scale-105 transition-transform duration-300">
               <CardContent className="p-8 flex items-center justify-between">
@@ -244,13 +226,13 @@ export default function AdminDashboard() {
         <Tabs defaultValue="pending-bookings" className="space-y-10">
           <TabsList className="bg-white/50 backdrop-blur p-1.5 border-2 border-white rounded-2xl inline-flex shadow-sm">
             <TabsTrigger value="pending-bookings" className="px-10 py-3 rounded-xl font-black uppercase text-xs tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
-              Review Proposals ({pendingRequests.length})
+              Queue ({pendingRequests.length})
             </TabsTrigger>
             <TabsTrigger value="active-bookings" className="px-10 py-3 rounded-xl font-black uppercase text-xs tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
-              Manage Allotments ({approvedBookings.length})
+              Confirmed ({approvedBookings.length})
             </TabsTrigger>
             <TabsTrigger value="master-calendar" className="px-10 py-3 rounded-xl font-black uppercase text-xs tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
-              Master Control
+              Overrides
             </TabsTrigger>
           </TabsList>
 
@@ -267,7 +249,7 @@ export default function AdminDashboard() {
                       <TableRow className="bg-secondary/40 border-b-2 hover:bg-secondary/40">
                         <TableHead className="font-black uppercase text-[10px] tracking-widest py-6 px-10">Ref ID</TableHead>
                         <TableHead className="font-black uppercase text-[10px] tracking-widest">Event Name</TableHead>
-                        <TableHead className="font-black uppercase text-[10px] tracking-widest">Shift / Slot</TableHead>
+                        <TableHead className="font-black uppercase text-[10px] tracking-widest">Shift / Date</TableHead>
                         <TableHead className="font-black uppercase text-[10px] tracking-widest text-right px-10">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -275,11 +257,11 @@ export default function AdminDashboard() {
                       {pendingRequests.map((req) => (
                         <TableRow key={req.id}>
                           <TableCell className="font-black text-primary py-6 px-10">{req.id.slice(0, 6)}</TableCell>
-                          <TableCell className="font-bold">{req.eventName}</TableCell>
+                          <TableCell className="font-bold uppercase text-xs">{req.eventName}</TableCell>
                           <TableCell>
                              <div className="flex flex-col">
                               <span className="text-[10px] font-black text-accent uppercase flex items-center gap-1">
-                                <Clock className="h-3 w-3" /> {req.slot}
+                                <Clock className="h-3 w-3" /> {req.slot === 'slot1' ? 'Shift 1' : 'Shift 2'}
                               </span>
                               <span className="text-[8px] font-bold text-muted-foreground uppercase">{req.bookingDate}</span>
                             </div>
@@ -314,7 +296,7 @@ export default function AdminDashboard() {
                       <TableRow className="bg-white/50 border-b hover:bg-white/50">
                         <TableHead className="font-black uppercase text-[10px] tracking-widest py-6 px-10">Ref ID</TableHead>
                         <TableHead className="font-black uppercase text-[10px] tracking-widest">Event Name</TableHead>
-                        <TableHead className="font-black uppercase text-[10px] tracking-widest">Shift / Slot</TableHead>
+                        <TableHead className="font-black uppercase text-[10px] tracking-widest">Shift / Date</TableHead>
                         <TableHead className="font-black uppercase text-[10px] tracking-widest text-right px-10">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -322,11 +304,11 @@ export default function AdminDashboard() {
                       {approvedBookings.map((req) => (
                         <TableRow key={req.id}>
                           <TableCell className="font-black text-primary py-6 px-10">{req.id.slice(0, 6)}</TableCell>
-                          <TableCell className="font-bold">{req.eventName}</TableCell>
+                          <TableCell className="font-bold uppercase text-xs">{req.eventName}</TableCell>
                           <TableCell>
                             <div className="flex flex-col">
                               <span className="text-[10px] font-black text-accent uppercase flex items-center gap-1">
-                                <Clock className="h-3 w-3" /> {req.slot}
+                                <Clock className="h-3 w-3" /> {req.slot === 'slot1' ? 'Shift 1' : 'Shift 2'}
                               </span>
                               <span className="text-[8px] font-bold text-muted-foreground uppercase">{req.bookingDate}</span>
                             </div>
@@ -384,7 +366,7 @@ export default function AdminDashboard() {
                         {blockedDates.map((block) => (
                           <TableRow key={block.id}>
                             <TableCell className="font-black py-6 px-10 text-destructive">{block.blockedDate}</TableCell>
-                            <TableCell className="text-sm font-bold text-muted-foreground uppercase">{block.reason}</TableCell>
+                            <TableCell className="text-xs font-bold text-muted-foreground uppercase">{block.reason}</TableCell>
                             <TableCell className="text-right px-10">
                               <Button variant="ghost" size="sm" onClick={() => removeBlock(block.id)} className="hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-5 w-5" /></Button>
                             </TableCell>
@@ -400,22 +382,22 @@ export default function AdminDashboard() {
 
               <Card className="border-none shadow-2xl bg-primary text-white rounded-3xl overflow-hidden">
                 <CardHeader className="py-8">
-                  <CardTitle className="text-xl font-black flex items-center gap-2 uppercase">
-                    <Stamp className="h-6 w-6 text-accent" /> Quick Revocation
+                  <CardTitle className="text-xl font-black flex items-center gap-2 uppercase tracking-tight">
+                    <Stamp className="h-6 w-6 text-accent" /> Quick Revoke
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase opacity-60">Full Document Reference ID</Label>
+                    <Label className="text-[10px] font-black uppercase opacity-60">Application Reference ID</Label>
                     <Input 
                       className="bg-white/10 border-white/20 text-white placeholder:text-white/40 h-14 rounded-xl font-black text-center" 
-                      placeholder="e.g. jf89H2k..." 
+                      placeholder="e.g. BR-4092" 
                       value={revocationId}
                       onChange={(e) => setRevocationId(e.target.value)}
                     />
                   </div>
-                  <Button variant="secondary" className="w-full bg-accent text-primary hover:bg-accent/90 h-16 rounded-xl font-black uppercase" onClick={handleQuickRevocation}>
-                    Revoke Slot
+                  <Button variant="secondary" className="w-full bg-accent text-primary hover:bg-accent/90 h-16 rounded-xl font-black uppercase tracking-widest text-xs" onClick={handleQuickRevocation}>
+                    Revoke Allotment
                   </Button>
                 </CardContent>
               </Card>

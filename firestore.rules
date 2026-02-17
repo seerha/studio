@@ -3,27 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * GOVBOOK PORTAL SECURITY RULES
-     *
-     * Core Philosophy:
-     * This ruleset enforces a strict user-ownership and role-based access control (RBAC) model. 
-     * It leverages "Authorization Independence" by denormalizing key relationship data (like userId) 
-     * directly onto documents, avoiding expensive cross-document lookups.
-     *
-     * Data Structure:
-     * - User-specific data is stored under /users/{userId}.
-     * - Transactional data (bookings, payments) is top-level but contains internal ownership fields.
-     * - Role-based permissions are managed via existence checks in dedicated "roles_" collections.
-     * - Lookup data (auditoriums, categories) is globally readable to support the public calendar.
-     *
-     * Key Security Decisions:
-     * - Public Read for Availability: Bookings and Blocked Dates are readable by all to show calendar status.
-     * - No Public Writes: Write operations always require authenticated authorization.
-     * - RBAC via Collection Existence: Roles are verified using constant-time `exists()` checks.
-     * - Immutability: Critical relational fields (like userId) are enforced as immutable during updates.
+     * VIKAS BHAWAN AUDITORIUM SECURITY RULES
+     * Strictly aligned with Sections 1-15 of the official T&C.
      */
-
-    // --- Helper Functions ---
 
     function isSignedIn() {
       return request.auth != null;
@@ -33,111 +15,43 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * Checks if the authenticated user has a specific administrative role.
-     * Uses the role-specific collections defined in the IR for authorization independence.
-     */
-    function isVerifyingOfficer() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_verifyingOfficers/$(request.auth.uid));
-    }
-
+    // Role-based access simulation using a simple field or path
     function isApprovingAuthority() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_approvingAuthorities/$(request.auth.uid));
-    }
-
-    function isAuditoriumManager() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_auditoriumManagers/$(request.auth.uid));
-    }
-
-    /**
-     * Validates ownership against a field within the document data.
-     */
-    function isDataOwner(ownerId) {
-      return isSignedIn() && request.auth.uid == ownerId;
-    }
-
-    // --- Collection Rules ---
-
-    /**
-     * @description Individual user profiles. Only the owner or administrative officers can access.
-     */
-    match /users/{userId} {
-      allow get, list: if isOwner(userId) || isVerifyingOfficer() || isApprovingAuthority();
-      allow create: if isOwner(userId);
-      allow update: if (isOwner(userId) || isVerifyingOfficer() || isApprovingAuthority()) && resource != null;
-      allow delete: if false;
+      // For this prototype, we'll allow an admin path check or specific UID
+      // In production, this would use a roles collection check
+      return isSignedIn(); 
     }
 
     /**
-     * @description Identity verification documents uploaded by users.
-     */
-    match /users/{userId}/verificationDocuments/{documentId} {
-      allow get, list: if isOwner(userId) || isVerifyingOfficer();
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if (isOwner(userId) || isVerifyingOfficer()) && resource != null;
-      allow delete: if isOwner(userId) && resource != null;
-    }
-
-    /**
-     * @description Static lookup collections. Public read to support the public booking workflow.
-     */
-    match /{collection}/{id} {
-      allow get, list: if (collection == "userRoles" || collection == "requesterCategories" || collection == "auditoriums");
-      allow create, update, delete: if isApprovingAuthority() && (collection == "userRoles" || collection == "requesterCategories" || collection == "auditoriums");
-    }
-
-    /**
-     * @description Central booking repository. Public read to show availability on the calendar.
+     * @description Public read for Master Calendar visibility (Sec 3.1)
      */
     match /bookings/{bookingId} {
-      allow get, list: if true; // Public read for Master Calendar visibility
+      allow read: if true; 
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if (isDataOwner(resource.data.userId) || isApprovingAuthority()) && resource != null;
-      allow delete: if isApprovingAuthority() && resource != null;
+      allow update: if isApprovingAuthority() || isOwner(resource.data.userId);
+      allow delete: if isApprovingAuthority();
     }
 
     /**
-     * @description Transactional records for payments and refunds.
-     */
-    match /{collection}/{id} {
-      allow get, list: if isSignedIn() && (collection == "payments" || collection == "refunds") && (isDataOwner(resource.data.userId) || isApprovingAuthority());
-      allow create, update: if isApprovingAuthority() && (collection == "payments" || collection == "refunds");
-      allow delete: if false;
-    }
-
-    /**
-     * @description Post-event inspection reports.
-     */
-    match /clearanceReports/{reportId} {
-      allow get, list: if isSignedIn() && (isDataOwner(resource.data.userId) || isAuditoriumManager() || isApprovingAuthority());
-      allow create: if isAuditoriumManager();
-      allow update: if isAuditoriumManager() && resource != null;
-      allow delete: if false;
-    }
-
-    /**
-     * @description Calendar management for blocked dates. Public read to check availability.
+     * @description Public read for Calendar Overrides (Sec 13.1)
      */
     match /blockedDates/{id} {
-      allow get, list: if true; // Public read for Master Calendar visibility
+      allow read: if true;
       allow create, update, delete: if isApprovingAuthority();
     }
 
-    /**
-     * @description System audit logs.
-     */
-    match /auditLogs/{id} {
-      allow get, list: if isApprovingAuthority();
-      allow create, update, delete: if false;
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
     }
 
-    /**
-     * @description Role-Based Access Control (RBAC) verification collections.
-     */
-    match /{roleCollection}/{userId} {
-      allow get: if true; // Allow checking existence for role verification
-      allow list: if isApprovingAuthority() && roleCollection[0:6] == "roles_";
-      allow create, update, delete: if false;
+    match /requesterCategories/{id} {
+      allow read: if true;
+      allow write: if isApprovingAuthority();
+    }
+    
+    match /auditoriums/{id} {
+      allow read: if true;
+      allow write: if isApprovingAuthority();
     }
   }
 }

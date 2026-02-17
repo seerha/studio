@@ -11,21 +11,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { useAuth, initiateAnonymousSignIn } from "@/firebase";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const router = useRouter();
   const { toast } = useToast();
-
-  const handleManualLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    const role = email.includes("admin") ? "admin" : "requester";
-    simulateLogin(role);
-  };
+  const auth = useAuth();
 
   const simulateLogin = (role: 'admin' | 'requester') => {
     setIsLoading(true);
+    
+    // Perform real Firebase Anonymous Sign-in so useUser() works
+    initiateAnonymousSignIn(auth);
+
     setTimeout(() => {
       const session = {
         role: role,
@@ -41,6 +41,12 @@ export default function LoginPage() {
 
       router.push(role === 'admin' ? "/dashboard/admin" : "/dashboard/requester");
     }, 800);
+  };
+
+  const handleManualLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const role = email.includes("admin") ? "admin" : "requester";
+    simulateLogin(role);
   };
 
   return (
@@ -68,8 +74,8 @@ export default function LoginPage() {
                 disabled={isLoading}
               >
                 <UserCheck className="h-6 w-6 mb-2 text-primary" />
-                <span className="font-bold">Login as User</span>
-                <span className="text-[10px] text-muted-foreground uppercase">Requester</span>
+                <span className="font-bold uppercase text-[10px]">Login as User</span>
+                <span className="text-[8px] text-muted-foreground uppercase">Requester</span>
               </Button>
               <Button 
                 variant="outline" 
@@ -78,8 +84,8 @@ export default function LoginPage() {
                 disabled={isLoading}
               >
                 <ShieldCheck className="h-6 w-6 mb-2 text-accent" />
-                <span className="font-bold">Login as Admin</span>
-                <span className="text-[10px] text-muted-foreground uppercase">Authority</span>
+                <span className="font-bold uppercase text-[10px]">Login as Admin</span>
+                <span className="text-[8px] text-muted-foreground uppercase">Authority</span>
               </Button>
             </div>
 
@@ -88,7 +94,7 @@ export default function LoginPage() {
                 <Separator className="w-full" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground">Or sign in with email</span>
+                <span className="bg-white px-2 text-muted-foreground">Official Credentials</span>
               </div>
             </div>
 
@@ -97,11 +103,11 @@ export default function LoginPage() {
                 <Label htmlFor="email">Official Email ID</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input 
+                  <input 
                     id="email" 
                     type="email" 
                     placeholder="name@gov.in" 
-                    className="pl-10"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     required 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -112,17 +118,17 @@ export default function LoginPage() {
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input 
+                  <input 
                     id="password" 
                     type="password" 
-                    className="pl-10"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     required 
                   />
                 </div>
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-primary hover:bg-primary/90"
+                className="w-full bg-primary hover:bg-primary/90 py-6 font-black uppercase tracking-widest text-xs"
                 disabled={isLoading}
               >
                 {isLoading ? "Authenticating..." : "Sign In"}
@@ -131,15 +137,15 @@ export default function LoginPage() {
             </form>
           </CardContent>
           <CardFooter className="bg-secondary/50 p-6 flex flex-col items-center gap-2 border-t rounded-b-lg">
-            <p className="text-sm text-muted-foreground">Don't have an account yet?</p>
-            <Button variant="link" className="text-primary p-0 h-auto font-bold" asChild>
-              <Link href="/auth/register">Register Your Organization</Link>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">New Organization? Register for Allotment</p>
+            <Button variant="link" className="text-primary p-0 h-auto font-black uppercase text-[10px] tracking-widest" asChild>
+              <Link href="/auth/register">Request Verification Portal</Link>
             </Button>
           </CardFooter>
         </Card>
       </main>
-      <footer className="py-6 text-center text-xs text-muted-foreground">
-        <p>© {new Date().getFullYear()} Official State Booking Portal. Authorized Access Only.</p>
+      <footer className="py-6 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-tighter opacity-60">
+        <p>© {new Date().getFullYear()} Official State Booking Portal. Authorized Access Only. Section 13.3 enforced.</p>
       </footer>
     </div>
   );
