@@ -26,19 +26,29 @@ import {
   Upload,
   CheckCircle2,
   AlertCircle,
-  Smartphone
+  Smartphone,
+  ChevronDown
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, addDays, isBefore, parseISO, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useFirestore, useUser, addDocumentNonBlocking } from "@/firebase";
 import { collection } from "firebase/firestore";
+
+const EVENT_TYPES = [
+  "Government / Semi-Government functions",
+  "Conferences, seminars, workshops, meetings",
+  "Cultural programmes, lectures, award ceremonies",
+  "Educational and social events",
+  "Professional cultural shows (Theatre, Music, Dance, Fashion, etc.)"
+];
 
 export default function NewBookingPage() {
   const { toast } = useToast();
@@ -55,6 +65,7 @@ export default function NewBookingPage() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [slot, setSlot] = useState("slot1");
   const [eventName, setEventName] = useState("");
+  const [eventType, setEventType] = useState("");
   const [eventPurpose, setEventPurpose] = useState("");
   const [isCollaboration, setIsCollaboration] = useState(false);
   const [collaborationEntity, setCollaborationEntity] = useState("");
@@ -123,8 +134,8 @@ export default function NewBookingPage() {
       toast({ title: "Date Missing", description: "Event date is mandatory (Section 1.1).", variant: "destructive" });
       return;
     }
-    if (!eventName || !eventPurpose) {
-      toast({ title: "Fields Missing", description: "Event name and purpose are mandatory.", variant: "destructive" });
+    if (!eventName || !eventType || !eventPurpose) {
+      toast({ title: "Fields Missing", description: "Event name, type, and purpose are mandatory.", variant: "destructive" });
       return;
     }
     if (isCollaboration && !collaborationEntity) {
@@ -150,6 +161,7 @@ export default function NewBookingPage() {
       bookingDate: format(date, "yyyy-MM-dd"),
       slot: slot,
       eventName: eventName,
+      eventType: eventType,
       eventPurpose: eventPurpose,
       status: "Pending",
       proposalSubmissionDate: new Date().toISOString(),
@@ -364,15 +376,33 @@ export default function NewBookingPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-10 space-y-8">
-                <div className="space-y-3">
-                  <Label htmlFor="event-name" className="font-black uppercase text-[10px] tracking-widest text-primary/60">Event Title (Sec 4.2)</Label>
-                  <Input 
-                    id="event-name" 
-                    placeholder="e.g. Annual Cultural Theatre Festival" 
-                    className="py-7 rounded-2xl border-2 border-primary/5 font-bold"
-                    value={eventName}
-                    onChange={(e) => setEventName(e.target.value)}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label htmlFor="event-name" className="font-black uppercase text-[10px] tracking-widest text-primary/60">Event Title (Sec 4.2)</Label>
+                    <Input 
+                      id="event-name" 
+                      placeholder="e.g. Annual Cultural Theatre Festival" 
+                      className="py-7 rounded-2xl border-2 border-primary/5 font-bold"
+                      value={eventName}
+                      onChange={(e) => setEventName(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="event-type" className="font-black uppercase text-[10px] tracking-widest text-primary/60">Nature of Event</Label>
+                    <Select onValueChange={setEventType} value={eventType}>
+                      <SelectTrigger className="py-7 rounded-2xl border-2 border-primary/5 font-bold h-auto">
+                        <SelectValue placeholder="Pick Event Type" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-none shadow-2xl">
+                        {EVENT_TYPES.map((type) => (
+                          <SelectItem key={type} value={type} className="font-bold py-3 uppercase text-[10px] tracking-tight">
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
