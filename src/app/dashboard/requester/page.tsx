@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -281,10 +282,6 @@ export default function RequesterDashboard() {
               </CardHeader>
               <CardContent className="px-8 pb-8 space-y-6">
                 <div className="p-6 bg-white/10 rounded-2xl border-2 border-white/20 backdrop-blur-sm shadow-inner">
-                  <p className="text-sm font-black uppercase mb-2 text-accent">Real-Time Sync</p>
-                  <p className="text-[11px] text-white/80 mb-6 font-bold leading-relaxed uppercase tracking-tight">
-                    Your dashboard is linked to the official Firestore backend. All decisions by the Competent Authority will reflect instantly.
-                  </p>
                   <Button size="sm" className="bg-accent text-primary hover:bg-accent/90 w-full h-14 font-black uppercase tracking-widest shadow-xl transition-all" asChild>
                     <Link href="/availability">Check Other Slots <ArrowUpRight className="ml-1 h-4 w-4" /></Link>
                   </Button>
