@@ -9,10 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Info, CalendarDays, Lock, AlertTriangle, Clock, CheckCircle2, AlertCircle, Users } from "lucide-react";
 import Link from "next/link";
-import { addDays, isBefore, isSameDay, format, parseISO } from "date-fns";
+import { addDays, isBefore, format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useCollection, useMemoFirebase, useFirestore } from "@/firebase";
-import { collection, query, where } from "firebase/firestore";
+import { collection, query } from "firebase/firestore";
 
 type SlotStatus = "available" | "pending" | "booked";
 
@@ -33,7 +33,7 @@ export default function AvailabilityPage() {
     if (!firestore) return null;
     return query(collection(firestore, "bookings"));
   }, [firestore]);
-  const { data: bookings, isLoading: isBookingsLoading } = useCollection(bookingsQuery);
+  const { data: bookings } = useCollection(bookingsQuery);
 
   // 2. Fetch Real-time Admin Overrides
   const blockedDatesQuery = useMemoFirebase(() => {
@@ -54,8 +54,8 @@ export default function AvailabilityPage() {
     // Check Bookings
     const dailyBookings = bookings.filter(b => b.bookingDate === dateStr && b.slot === slotId);
     
-    if (dailyBookings.some(b => b.status === "Confirmed" || b.status === "Paid")) return "booked";
-    if (dailyBookings.some(b => b.status === "Pending" || b.status === "Approved")) return "pending";
+    if (dailyBookings.some(b => b.status === "Confirmed" || b.status === "Paid" || b.status === "Approved")) return "booked";
+    if (dailyBookings.some(b => b.status === "Pending")) return "pending";
 
     return "available";
   };
@@ -80,9 +80,9 @@ export default function AvailabilityPage() {
       case "available":
         return <Badge className="bg-green-500/10 text-green-600 border-green-200 uppercase text-[10px] font-black">Available (Open Slot)</Badge>;
       case "pending":
-        return <Badge className="bg-accent/10 text-primary border-accent/20 uppercase text-[10px] font-black">Awaiting Approval</Badge>;
+        return <Badge className="bg-accent/10 text-primary border-accent/20 uppercase text-[10px] font-black">Pending Approval</Badge>;
       case "booked":
-        return <Badge className="bg-destructive/10 text-destructive border-destructive/20 uppercase text-[10px] font-black">Confirmed Allotment</Badge>;
+        return <Badge className="bg-destructive/10 text-destructive border-destructive/20 uppercase text-[10px] font-black">Fully Allotted / Blocked</Badge>;
     }
   };
 
@@ -123,45 +123,43 @@ export default function AvailabilityPage() {
                     className="rounded-xl border-2 border-primary/5 shadow-xl p-4"
                     modifiers={{
                       booked: (d) => {
-                        const dateStr = format(d, "yyyy-MM-dd");
-                        const blocked = blockedDates?.some(b => b.blockedDate === dateStr);
-                        const slot1 = getSlotStatus("slot1", d) === "booked";
-                        const slot2 = getSlotStatus("slot2", d) === "booked";
-                        return blocked || (slot1 && slot2);
+                        const s1 = getSlotStatus("slot1", d);
+                        const s2 = getSlotStatus("slot2", d);
+                        return s1 === "booked" && s2 === "booked";
                       },
                       partial: (d) => {
-                        const slot1 = getSlotStatus("slot1", d) === "booked";
-                        const slot2 = getSlotStatus("slot2", d) === "booked";
-                        return slot1 || slot2;
+                        const s1 = getSlotStatus("slot1", d);
+                        const s2 = getSlotStatus("slot2", d);
+                        return (s1 === "booked" || s2 === "booked") && !(s1 === "booked" && s2 === "booked");
                       },
                       pending: (d) => {
-                        const slot1 = getSlotStatus("slot1", d) === "pending";
-                        const slot2 = getSlotStatus("slot2", d) === "pending";
-                        return slot1 || slot2;
+                        const s1 = getSlotStatus("slot1", d);
+                        const s2 = getSlotStatus("slot2", d);
+                        return s1 === "pending" || s2 === "pending";
                       },
                     }}
                     modifiersStyles={{
-                      booked: { backgroundColor: 'hsl(var(--destructive))', color: 'white', borderRadius: '4px' },
-                      partial: { border: '2px solid hsl(var(--destructive))', borderRadius: '4px' },
-                      pending: { backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--primary))', borderRadius: '4px' },
+                      booked: { backgroundColor: 'hsl(var(--destructive))', color: 'white', fontWeight: '900' },
+                      partial: { border: '2px solid hsl(var(--destructive))', fontWeight: '900' },
+                      pending: { backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--primary))', fontWeight: '900' },
                     }}
                   />
                 </div>
                 
                 <div className="pt-8 border-t space-y-4">
-                  <h4 className="font-black text-xs uppercase tracking-widest text-muted-foreground">Legend</h4>
+                  <h4 className="font-black text-xs uppercase tracking-widest text-muted-foreground">Status Legend</h4>
                   <div className="flex flex-wrap gap-6">
                     <div className="flex items-center gap-2">
                       <div className="h-4 w-4 bg-white border-2 border-primary/10 rounded" />
-                      <span className="text-[10px] font-bold uppercase text-primary/60 tracking-tight">Open</span>
+                      <span className="text-[10px] font-black uppercase text-primary/60 tracking-tight">Open for Proposals</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="h-4 w-4 bg-accent rounded" />
-                      <span className="text-[10px] font-bold uppercase text-primary/60 tracking-tight">Pending Approval</span>
+                      <span className="text-[10px] font-black uppercase text-primary/60 tracking-tight">Pending Approval</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="h-4 w-4 bg-destructive rounded" />
-                      <span className="text-[10px] font-bold uppercase text-primary/60 tracking-tight">Fully Allotted / Blocked</span>
+                      <span className="text-[10px] font-black uppercase text-primary/60 tracking-tight">Fully Allotted / Blocked</span>
                     </div>
                   </div>
                 </div>
@@ -174,7 +172,7 @@ export default function AvailabilityPage() {
               <CardHeader className="bg-secondary/50 border-b-2 py-8 px-10">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <CardTitle className="text-xl font-black uppercase text-primary">Shift Selection for Selected Date</CardTitle>
+                    <CardTitle className="text-xl font-black uppercase text-primary">Shift Availability</CardTitle>
                     <p className="text-3xl font-black text-accent tracking-tighter">
                       {date ? format(date, "MMMM dd, yyyy") : "Pick a date"}
                     </p>
@@ -202,7 +200,7 @@ export default function AvailabilityPage() {
                       <div className="w-full md:w-auto">
                         {slot.status === "booked" ? (
                           <Button disabled className="w-full md:w-auto bg-muted text-muted-foreground font-black uppercase text-[10px] tracking-widest cursor-not-allowed">
-                            <Lock className="mr-2 h-3.5 w-3.5" /> Allotted
+                            <Lock className="mr-2 h-3.5 w-3.5" /> Fully Allotted
                           </Button>
                         ) : (
                           <Button className="w-full md:w-auto bg-primary text-white font-black uppercase text-[10px] tracking-widest shadow-lg hover:scale-105 transition-transform" asChild>
@@ -219,10 +217,10 @@ export default function AvailabilityPage() {
                 <div className="p-6 bg-primary/5 rounded-2xl border-2 border-primary/10 space-y-4">
                   <div className="flex items-center gap-2">
                     <AlertCircle className="h-5 w-5 text-primary" />
-                    <p className="font-black text-[10px] uppercase text-primary tracking-widest underline">Booking Mandate (Sec 1.1 &amp; 3.1)</p>
+                    <p className="font-black text-[10px] uppercase text-primary tracking-widest underline">Statutory Mandate (Sec 3.1)</p>
                   </div>
                   <p className="text-[11px] text-primary/80 font-bold leading-relaxed uppercase italic">
-                    Allotment is strictly shift-based. If your program exceeds the allotted shift by more than 2 hours, a full day's rent will be charged as per Section 3.6.
+                    Allotment is strictly shift-based. Overlapping shifts will result in full-day rent billing as per Section 3.6 of the official T&C.
                   </p>
                 </div>
               </CardContent>
@@ -240,7 +238,7 @@ export default function AvailabilityPage() {
                 <CheckCircle2 className="h-8 w-8 text-primary mb-4" />
                 <div>
                   <p className="text-2xl font-black text-primary tracking-tighter">Verified</p>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Booking Mode Only</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Identity Mode</p>
                 </div>
               </Card>
             </div>
